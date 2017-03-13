@@ -99,7 +99,13 @@ jQuery(document).ready(function($) {
                 var card = main.gameData.getCardFromHand(cards.data('id'));
                 if (card.type === $C.CARD.FAVOR) {
                     GameRoom.showFavorSelectOverlay(main);
-                } else {
+                }
+                else if (card.type == $C.CARD.SEEONE) 
+                {
+                    GameRoom.showSeeOneSelectOverlay(main);
+                }
+                else 
+                {
                     io.emit($C.GAME.PLAYER.PLAY, { 
                         gameId: main.getCurrentUserGame().id,
                         cards: cardIdsFromDOMData(cards)
@@ -150,6 +156,7 @@ jQuery(document).ready(function($) {
     
     });
     
+
     $('#favorSelectButton').bind('click touchstart', function(e) {
         e.preventDefault();
         var cards = $("#playingInput .card[data-selected='true']");
@@ -179,6 +186,28 @@ jQuery(document).ready(function($) {
         if (cards.length > 0 && to && game) {
             
             //Play the cards and the steal
+            io.emit($C.GAME.PLAYER.PLAY, {
+                gameId: game.id,
+                cards: cardIdsFromDOMData(cards),
+                to: to
+            });
+            
+            GameRoom.hideOverlay();
+        }
+        
+    });
+
+    //TODO: seeOneSelectButton oid? Deze werkt misschien niet goed? G
+
+    $('#seeOneButton').bind('click touchstart', function(e) {
+        e.preventDefault();
+        var cards = $("#playingInput .card[data-selected='true']");
+        var to = $('#seeOnePopup #player-select').val();
+        var game = main.getCurrentUserGame();
+        
+        if (cards.length > 0 && to && game) {
+            
+            //Play the cards and see one
             io.emit($C.GAME.PLAYER.PLAY, {
                 gameId: game.id,
                 cards: cardIdsFromDOMData(cards),
@@ -455,6 +484,8 @@ jQuery(document).ready(function($) {
         GameRoom.logSystem(data.player.user.name + ' joined the game.');
     });
     
+    //HIER GEBLEVEN:
+
     io.on($C.GAME.PLAYER.DISCONNECT, function(data) {
         //Update game data
         main.addGame(gameFromData(data.game));

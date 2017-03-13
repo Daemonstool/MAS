@@ -56,7 +56,9 @@ var $ = {
             STEAL: 'playerSteal',
             FAVOR: 'playerFavor',
             FUTURE: 'playerFuture',
-            NOPE: 'playerNope'
+            NOPE: 'playerNope',
+            SEEONE: 'playerSeeOne',
+            SEETHREE: 'playerSeeThree'
         },
         REMOVED: 'gameRemoved'
     },
@@ -76,7 +78,9 @@ var $ = {
         FAVOR: 'Favor',
         SHUFFLE: 'Shuffle',
         REGULAR: 'Regular',
-        REVERSE: 'Reverse'
+        REVERSE: 'Reverse',
+        SEEONE: 'See one card',
+        SEETHREE: 'See three cards'
     },
     
     CARDSET: {

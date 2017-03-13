@@ -699,6 +699,29 @@ module.exports = function(io, EK) {
                                 }
                                 
                                 break;
+                            case $.CARD.SEETHREE:
+                            case $.CARD.SEEONE:
+                                //Only see card if we have someone to get a see card from
+                                if (!otherPlayerExists(data)) {
+                                    socket.emit($.GAME.PLAYER.PLAY, {
+                                        error: 'Invalid user selected'
+                                    });
+                                    return;
+                                }
+                                
+                                var other = EK.connectedUsers[data.to];
+                                var otherPlayer = game.getPlayer(other);
+                                
+                                //Check if the other player has any cards
+                                if (otherPlayer && otherPlayer.hand.length < 1) {
+                                    socket.emit($.GAME.PLAYER.PLAY, {
+                                        error: 'User has no cards in their hand!'
+                                    });
+                                    return;
+                                }
+                                
+                                break;
+
                         }
                     }
                     
@@ -851,6 +874,69 @@ module.exports = function(io, EK) {
                 });
             }
         });
+
+        socket.on($.GAME.PLAYER.SEEONE, function(data){
+            //Get the game and check if it exists
+            var game = EK.gameList[data.gameId];
+
+            if (game && game.status == $.GAME.STATUS.PLAYING) {
+                var user = EK.connectedUsers[socket.id];
+                var player = game.getPlayer(user);
+                
+                //Check if we have right player
+                if (!data.hasOwnProperty('to') || !EK.connectedUsers[data.to] || !game.getPlayer(EK.connectedUsers[data.to])) {
+                    socket.emit($.GAME.PLAYER.SEEONE, {
+                        error: 'Invalid player'
+                    });
+                    return;
+                }
+                
+                //Check if current user has card
+                if (!data.hasOwnProperty('card') || !game.getPlayer(user).hasCardWithId(data.card)) {
+                    socket.emit($.GAME.PLAYER.SEEONE, {
+                        error: 'Invalid card'
+                    });
+                    return;
+                }
+                
+                //Check if the other person is currently the one doing their turn
+                var other = EK.connectedUsers[data.to];
+                var otherPlayer = game.getPlayer(other);
+                
+                if (otherPlayer === game.playerForCurrentIndex()) {
+                    
+                    //Check if the favor is still possible
+                    if (!effectsPlayed(game, otherPlayer)) {
+                        
+                        //Make sure the last set is still not pending
+                        var lastSet = game.getLastDiscardSet();
+                        if (!EK.pendingSets[lastSet.id]) {
+                            //Select random card from player and notify it to the other player.
+                            var card = player.getRandomCard();
+                            
+                            //Set the effect play
+                            game.getLastDiscardSet().effectPlayed = true;
+
+                            //Notify players of the see one
+                            io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
+                                success: true,
+                                to: other,
+                                from: user,
+                                card: card
+                            });
+                            return;
+                        }
+                    }
+                }
+                
+                //If we hit here then see one did not go through
+                socket.emit($.GAME.PLAYER.SEEONE, {
+                    error: 'Something went wrong'
+                });
+            }
+        });
+
+
     });
     
     //************ Socket methods ************//
@@ -1043,6 +1129,35 @@ module.exports = function(io, EK) {
                     }
 
                     break;
+
+                case $.CARD.SEEONE:
+                    if (otherPlayerExists(data)) {
+                        var other = EK.connectedUsers[data.to];
+                        var otherPlayer = game.getPlayer(other);
+
+                        //Set the see one to false
+                        playedSet.effectPlayed = false;
+
+                        //Check if the other player has any cards
+                        //Tough luck if a player gets this D:
+                        //This can happen if the favor goes through even with nopes and the person has no card
+                        if (otherPlayer && otherPlayer.hand.length < 1) {
+                            socket.emit($.GAME.PLAYER.PLAY, {
+                                error: 'User has no cards in their hand!'
+                            });                     
+                            playedSet.effectPlayed = true;
+                        } else {
+                            //Ask other player to see one card
+                            io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
+                                force: true,
+                                from: user,
+                                to: other
+                            });
+                        }
+                    }
+
+                    break;
+
                 case $.CARD.FUTURE:
 
                     //Get the first 3 cards on the top of the draw pile
