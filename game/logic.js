@@ -1149,17 +1149,42 @@ module.exports = function(io, EK) {
                         } else {
                             //Ask other player to see one card
                             io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
-                                force: true,
+                                to: other.id,
                                 from: user,
-                                to: other
+                                card: card
                             });
                         }
                     }
-
                     break;
 
-                case $.CARD.FUTURE:
 
+/*case $.CARDSET.STEAL.BLIND:
+                    if (otherPlayerExists(data)) {
+                        var other = EK.connectedUsers[data.to];
+                        var otherPlayer = game.getPlayer(other);
+                        
+                        if (otherPlayer.hand.length > 0) {
+                            //Remove a random card from the other players hand and add it to the current player
+                            var card = otherPlayer.getRandomCard();
+                            otherPlayer.removeCard(card);
+                            player.addCard(card);
+
+                            //Tell players that a steal occurred
+                            io.in(game.id).emit($.GAME.PLAYER.STEAL, {
+                                to: other.id,
+                                from: socket.id,
+                                card: card,
+                                type: steal
+                            });
+                        } else {
+                            socket.emit($.GAME.PLAYER.PLAY, {
+                                error: 'User has no cards in their hand!'
+                            });
+                        }
+                    }
+                    break;
+*/
+                case $.CARD.FUTURE:
                     //Get the first 3 cards on the top of the draw pile
                     var futureCards = [];
                     for (var i = 0; i < 3; i++)

@@ -197,8 +197,6 @@ jQuery(document).ready(function($) {
         
     });
 
-    //TODO: seeOneSelectButton oid? Deze werkt misschien niet goed? G
-
     $('#seeOneButton').bind('click touchstart', function(e) {
         e.preventDefault();
         var cards = $("#playingInput .card[data-selected='true']");
@@ -800,6 +798,37 @@ jQuery(document).ready(function($) {
         io.emit($C.GAME.DISCARDPILE, { gameId: game.id });
     });
     
+
+    io.on($C.GAME.PLAYER.SEEONE, function(data) {
+        if (data.hasOwnProperty('error'))
+            GameRoom.logError(data.error);
+        else 
+        {
+            var from = main.users[data.from];
+            var to = main.users[data.to];
+            var currentUser = main.getCurrentUser();
+            var fromString = "";
+            var toString = "";
+            
+            //Only set strings if we have the data
+            if (from)
+                fromString = (currentUser.id === from.id) ? "You" : from.name;
+            if (to)
+                toString = (currentUser.id === to.id) ? "You" : to.name;
+            if (cards.length > 0) 
+            { 
+                GameRoom.logSystemGreen(fromString + " saw a card from " + toString+ ".");
+                //Tell the players involved what they lost or gained
+                if (currentUser.id === from.id)
+                    GameRoom.logLocal("You saw a " + data.card.name + " from " + fromString + ".");
+                if (currentUser.id === to.id)
+                    GameRoom.logLocal(toString + " saw a " + data.card.name + " from you.");
+            }
+            else
+                GameRoon.logLocal('There is nothing to see!'); 
+        }
+    }); 
+
     io.on($C.GAME.PLAYER.FAVOR, function(data) {
         if (data.hasOwnProperty('error')) {
             GameRoom.logError(data.error);
