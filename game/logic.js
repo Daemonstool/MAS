@@ -677,6 +677,7 @@ module.exports = function(io, EK) {
                         }
                     } else {
                         var card = playedSet.cards[0];
+                        console.log(card.type)
                         switch (card.type) {    
                             case $.CARD.FAVOR:
                                 //Only favor if we have someone to get a favor from
@@ -701,7 +702,7 @@ module.exports = function(io, EK) {
                                 break;
                             case $.CARD.SEETHREE:
                             case $.CARD.SEEONE:
-                                alert("case $.CARD.SEEONE")
+                                console.log("case $.CARD.SEEONE")
                                 //Only see card if we have someone to get a see card from
                                 
                                 if (!otherPlayerExists(data)) {

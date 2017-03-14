@@ -388,7 +388,7 @@ Game.prototype.resetDeck = function() {
             this.drawPile.push(new Card(this.generateRandomID(), 'Favor', $.CARD.FAVOR, 2));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Shuffle', $.CARD.SHUFFLE, 3));
             
-            this.drawPile.push(new Card(this.generateRandomID(), 'SeeOne', $.CARD.SHUFFLE, 10));
+            this.drawPile.push(new Card(this.generateRandomID(), 'SeeOne', $.CARD.SEEONE, 10));
             //Only add the reverse if we have more than 2 players since with 2 people order doesn't matter
             if (this.players.length > 2) {
                 this.drawPile.push(new Card(this.generateRandomID(), 'Reverse', $.CARD.REVERSE, 3));
