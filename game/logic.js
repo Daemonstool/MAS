@@ -701,7 +701,9 @@ module.exports = function(io, EK) {
                                 break;
                             case $.CARD.SEETHREE:
                             case $.CARD.SEEONE:
+                                alert("case $.CARD.SEEONE")
                                 //Only see card if we have someone to get a see card from
+                                
                                 if (!otherPlayerExists(data)) {
                                     socket.emit($.GAME.PLAYER.PLAY, {
                                         error: 'Invalid user selected'

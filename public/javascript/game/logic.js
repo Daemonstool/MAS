@@ -102,6 +102,7 @@ jQuery(document).ready(function($) {
                 }
                 else if (card.type == $C.CARD.SEEONE) 
                 {
+                    GameRoom.logSystem("Al Jihaad!");
                     GameRoom.showSeeOneSelectOverlay(main);
                 }
                 else 
