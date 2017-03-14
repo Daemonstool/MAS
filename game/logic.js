@@ -878,7 +878,9 @@ module.exports = function(io, EK) {
             }
         });
 
-        socket.on($.GAME.PLAYER.SEEONE, function(data){
+        /*Deze methode is voor de andere speler om de kaart te selecteren die naar degene gaat die de favor speelt.
+
+        /*socket.on($.GAME.PLAYER.SEEONE, function(data){
             //Get the game and check if it exists
             var game = EK.gameList[data.gameId];
 
@@ -922,7 +924,6 @@ module.exports = function(io, EK) {
 
                             //Notify players of the see one
                             io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
-                                success: true,
                                 to: other,
                                 from: user,
                                 card: card
@@ -937,7 +938,7 @@ module.exports = function(io, EK) {
                     error: 'Something went wrong'
                 });
             }
-        });
+        });*/
 
 
     });
@@ -1134,6 +1135,7 @@ module.exports = function(io, EK) {
                     break;
 
                 case $.CARD.SEEONE:
+                    console.log("im here!");
                     if (otherPlayerExists(data)) {
                         var other = EK.connectedUsers[data.to];
                         var otherPlayer = game.getPlayer(other);
@@ -1145,16 +1147,18 @@ module.exports = function(io, EK) {
                         //Tough luck if a player gets this D:
                         //This can happen if the favor goes through even with nopes and the person has no card
                         if (otherPlayer && otherPlayer.hand.length < 1) {
+                            
                             socket.emit($.GAME.PLAYER.PLAY, {
                                 error: 'User has no cards in their hand!'
                             });                     
-                            playedSet.effectPlayed = true;
+                            //playedSet.effectPlayed = true;
                         } else {
+                            var card2 = otherPlayer.getRandomCard();
                             //Ask other player to see one card
                             io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
                                 to: other.id,
                                 from: user,
-                                card: card
+                                card: card2
                             });
                         }
                     }

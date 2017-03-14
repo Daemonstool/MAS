@@ -801,9 +801,11 @@ jQuery(document).ready(function($) {
     
 
     io.on($C.GAME.PLAYER.SEEONE, function(data) {
+        GameRoom.logLocal('in io.on!'); 
         if (data.hasOwnProperty('error'))
+        {   
             GameRoom.logError(data.error);
-        else 
+        } else 
         {
             var from = main.users[data.from];
             var to = main.users[data.to];
@@ -813,20 +815,36 @@ jQuery(document).ready(function($) {
             
             //Only set strings if we have the data
             if (from)
-                fromString = (currentUser.id === from.id) ? "You" : from.name;
-            if (to)
-                toString = (currentUser.id === to.id) ? "You" : to.name;
-            if (cards.length > 0) 
-            { 
-                GameRoom.logSystemGreen(fromString + " saw a card from " + toString+ ".");
-                //Tell the players involved what they lost or gained
-                if (currentUser.id === from.id)
-                    GameRoom.logLocal("You saw a " + data.card.name + " from " + fromString + ".");
-                if (currentUser.id === to.id)
-                    GameRoom.logLocal(toString + " saw a " + data.card.name + " from you.");
+            {
+                fromString = (currentUser.id === from.id) ? "You1" : from.name;
+                toString = (currentUser.id === from.id) ? from.name : "You2";
             }
+            if (to)
+            {
+                toString = (currentUser.id === to.id) ? "You3" : to.name;
+                fromString = (currentUser.id === to.id) ? to.name : "You4";
+            }
+            GameRoom.logSystemGreen(fromString + " saw a card from " + toString+ ".5");
+            
+            if (currentUser.id === from.id) 
+                GameRoom.logLocal("Al Bagdadi");
+            else 
+                GameRoom.logLocal("Bomb failed");
+
+            if (currentUser.id === to.id)
+                GameRoom.logLocal("Cat exploded");
             else
-                GameRoon.logLocal('There is nothing to see!'); 
+                GameRoom.logLocal("Cat defused");
+            //Tell the players involved what they lost or gained
+            if (currentUser.id === from.id) {
+                GameRoom.logLocal("You saw a " + data.card.name + " from " + fromString + ".1");
+            }
+            if (currentUser.id === to.id)
+            {
+                GameRoom.logLocal(toString + " saw a " + data.card.name + " from you.2");
+            }
+
+            
         }
     }); 
 
