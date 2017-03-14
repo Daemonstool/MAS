@@ -200,7 +200,7 @@ jQuery(document).ready(function($) {
     $('#seeOneButton').bind('click touchstart', function(e) {
         e.preventDefault();
         var cards = $("#playingInput .card[data-selected='true']");
-        var to = $('#seeOnePopup #player-select').val();
+        var to = $('#seeOneSelectPopup #player-select').val();
         var game = main.getCurrentUserGame();
         
         if (cards.length > 0 && to && game) {
