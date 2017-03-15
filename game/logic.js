@@ -1179,8 +1179,6 @@ module.exports = function(io, EK) {
                         } else {
                             // null, or an array ranging from 0 to 2. 
                             var cardArray = otherPlayer.getThreeRandomCards();
-                            console.log(cardArray);
-                            console.log(cardArray.length);
 
                             //Ask other player to see one card
                             io.in(game.id).emit($.GAME.PLAYER.SEETHREE, {
@@ -1202,8 +1200,6 @@ module.exports = function(io, EK) {
                         }
                     }
 
-                    console.log(futureCards);
-                    console.log(futureCards.length);
                     //Send the cards to the player
                     socket.emit($.GAME.PLAYER.FUTURE, {
                         cards: futureCards
