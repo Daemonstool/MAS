@@ -879,7 +879,7 @@ jQuery(document).ready(function($) {
                 if (currentUser.id === from.id)
                     GameRoom.logLocal(fromString + " saw a " + cards[i].name + " from " + toString);
                 if (currentUser.id === to.id)
-                    GameRoom.logLocal(fromString + " saw a " + card[i].name + " from " + toString);
+                    GameRoom.logLocal(fromString + " saw a " + cards[i].name + " from " + toString);
             }
         }
         /*        var cards = data.cards;
