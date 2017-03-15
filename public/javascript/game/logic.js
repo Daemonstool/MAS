@@ -101,6 +101,8 @@ jQuery(document).ready(function($) {
                     GameRoom.showFavorSelectOverlay(main);
                 else if (card.type == $C.CARD.SEEONE) 
                     GameRoom.showSeeOneSelectOverlay(main);
+                else if (card.type == $C.CARD.SEETHREE) 
+                    GameRoom.showSeeThreeSelectOverlay(main);
                 else 
                 {
                     io.emit($C.GAME.PLAYER.PLAY, { 
@@ -198,6 +200,26 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         var cards = $("#playingInput .card[data-selected='true']");
         var to = $('#seeOneSelectPopup #player-select').val();
+        var game = main.getCurrentUserGame();
+        
+        if (cards.length > 0 && to && game) {
+            
+            //Play the cards and see one
+            io.emit($C.GAME.PLAYER.PLAY, {
+                gameId: game.id,
+                cards: cardIdsFromDOMData(cards),
+                to: to
+            });
+            
+            GameRoom.hideOverlay();
+        }
+        
+    });
+
+    $('#seeThreeButton').bind('click touchstart', function(e) {
+        e.preventDefault();
+        var cards = $("#playingInput .card[data-selected='true']");
+        var to = $('#seeThreeSelectPopup #player-select').val();
         var game = main.getCurrentUserGame();
         
         if (cards.length > 0 && to && game) {
@@ -825,7 +847,40 @@ jQuery(document).ready(function($) {
             if (currentUser.id === to.id)
                 GameRoom.logLocal(fromString + " saw a " + card.name + " from " + toString);
         }
+    });
+
+    io.on($C.GAME.PLAYER.SEETHREE, function(data) {
+        var card = data.card;
+
+        if (data.hasOwnProperty('error'))   
+            GameRoom.logError(data.error);
+        else 
+        {
+            var from = main.users[data.from];
+            var to = main.users[data.to];
+            var currentUser = main.getCurrentUser();
+            var fromString = "";
+            var toString = "";
+            
+            //Only set strings if we have the data
+            if (from)
+                fromString = (currentUser.id === from.id) ? "You" : from.name;
+            
+            if (to)
+                toString = (currentUser.id === to.id) ? "You" : to.name
+
+            //Tell all the players that a card was seen from someone.
+            GameRoom.logSystemGreen(fromString + " saw a card from " + toString);
+            
+            //Tell the players involved what they lost or gained
+            if (currentUser.id === from.id)
+                GameRoom.logLocal(fromString + " saw a " + card.name + " from " + toString);
+            if (currentUser.id === to.id)
+                GameRoom.logLocal(fromString + " saw a " + card.name + " from " + toString);
+        }
     }); 
+
+    
 
     io.on($C.GAME.PLAYER.FAVOR, function(data) {
         if (data.hasOwnProperty('error')) {

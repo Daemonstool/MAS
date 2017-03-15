@@ -406,6 +406,11 @@ html, body {
     border: 5px solid #EA6987;
 }
 
+.card-seeOne {
+    color: #6F6A81;
+    border: 5px solid #2ED9A7;
+}
+
 .card-favor {
     color: #A9A097;
     border: 5px solid #A9A097;
