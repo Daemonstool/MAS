@@ -819,7 +819,6 @@ jQuery(document).ready(function($) {
     
 
     io.on($C.GAME.PLAYER.SEEONE, function(data) {
-        var card = data.card;
 
         if (data.hasOwnProperty('error'))   
             GameRoom.logError(data.error);
@@ -830,6 +829,7 @@ jQuery(document).ready(function($) {
             var currentUser = main.getCurrentUser();
             var fromString = "";
             var toString = "";
+            var card = data.card;
             
             //Only set strings if we have the data
             if (from)
@@ -850,7 +850,6 @@ jQuery(document).ready(function($) {
     });
 
     io.on($C.GAME.PLAYER.SEETHREE, function(data) {
-        var card = data.card;
 
         if (data.hasOwnProperty('error'))   
             GameRoom.logError(data.error);
@@ -862,6 +861,8 @@ jQuery(document).ready(function($) {
             var fromString = "";
             var toString = "";
             
+            var cards = data.cards;    
+
             //Only set strings if we have the data
             if (from)
                 fromString = (currentUser.id === from.id) ? "You" : from.name;
@@ -870,17 +871,33 @@ jQuery(document).ready(function($) {
                 toString = (currentUser.id === to.id) ? "You" : to.name
 
             //Tell all the players that a card was seen from someone.
-            GameRoom.logSystemGreen(fromString + " saw a card from " + toString);
-            
-            //Tell the players involved what they lost or gained
-            if (currentUser.id === from.id)
-                GameRoom.logLocal(fromString + " saw a " + card.name + " from " + toString);
-            if (currentUser.id === to.id)
-                GameRoom.logLocal(fromString + " saw a " + card.name + " from " + toString);
+            GameRoom.logSystemGreen(fromString + " saw " + cards.length +  " card(s) from " + toString);
+                
+
+            for (var i = 0; i < cards.length; i++) {
+                //Tell the players involved what they lost or gained
+                if (currentUser.id === from.id)
+                    GameRoom.logLocal(fromString + " saw a " + cards[i].name + " from " + toString);
+                if (currentUser.id === to.id)
+                    GameRoom.logLocal(fromString + " saw a " + card[i].name + " from " + toString);
+            }
         }
+        /*        var cards = data.cards;
+        if (cards.length > 0) {
+            //Tell player of the cards they see
+            var string = "You see a ";
+            $.each(cards, function(index, card) {
+                string += card.name + ', ';
+            });
+            string = string.slice(0, -2); //Remove ', '
+            GameRoom.logLocal(string);
+        } else {
+            GameRoom.logLocal('There is nothing to see!');
+        }*/
+
     }); 
 
-    
+
 
     io.on($C.GAME.PLAYER.FAVOR, function(data) {
         if (data.hasOwnProperty('error')) {

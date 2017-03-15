@@ -147,6 +147,42 @@ Player.prototype.getRandomCard = function() {
 }
 
 /**
+ * Get three random card from the players hand
+ * @returns {Object} An array of 3, 2 or 1 random card(s) or null
+ */
+Player.prototype.getThreeRandomCards = function() {
+    var cards = [];
+
+    // Not sure if this can happen...
+    if (this.hand.length == 0) 
+        return null;
+    
+    var randomInt1 = Math.floor(Math.random() * (this.hand.length - 1));
+    cards.push(this.hand[randomInt1]);
+    
+    if (this.hand.length == 1)
+        return cards;
+    
+    // randomInt2 should not equal randomInt1.
+    var randomInt2 = Math.floor(Math.random() * (this.hand.length - 1));
+    while (randomInt2 == randomInt1)
+        var randomInt2 = Math.floor(Math.random() * (this.hand.length - 1));
+
+    cards.push(this.hand[randomInt2]);
+    
+    if (this.hand.length == 2)
+        return cards;
+    
+    // randomInt3 should not be equal to randomInt1 and randomInt2.
+    var randomInt3 = Math.floor(Math.random() * (this.hand.length - 1));
+    while (randomInt3 == randomInt1 || randomInt3 == randomInt2)
+        var randomInt3 = Math.floor(Math.random() * (this.hand.length - 1));
+        
+    cards.push(this.hand[randomInt3]);    
+    return cards;
+}
+
+/**
  * Get a card of a certain type
  * @param   {Object} type [[Description]]
  * @returns {Object} The card of type or null

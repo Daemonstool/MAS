@@ -385,7 +385,7 @@ Game.prototype.resetDeck = function() {
             // commented out for testing: 
             // this.drawPile.push(new Card(this.generateRandomID(), 'Attack', $.CARD.ATTACK, 0));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Skip', $.CARD.SKIP, 1));
-            this.drawPile.push(new Card(this.generateRandomID(), 'Favor', $.CARD.FAVOR, 2));
+            //this.drawPile.push(new Card(this.generateRandomID(), 'Favor', $.CARD.FAVOR, 2));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Shuffle', $.CARD.SHUFFLE, 3));
             
             this.drawPile.push(new Card(this.generateRandomID(), 'SeeOne', $.CARD.SEEONE, 10));
@@ -397,7 +397,7 @@ Game.prototype.resetDeck = function() {
             }
             
             //Regular
-            this.drawPile.push(new Card(this.generateRandomID(), 'Tomato', $.CARD.REGULAR, 4));
+            //this.drawPile.push(new Card(this.generateRandomID(), 'Tomato', $.CARD.REGULAR, 4));
             // commented out for testing:
             //this.drawPile.push(new Card(this.generateRandomID(), 'Barbecue', $.CARD.REGULAR, 5));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Mustard', $.CARD.REGULAR, 6));
@@ -405,7 +405,7 @@ Game.prototype.resetDeck = function() {
             //this.drawPile.push(new Card(this.generateRandomID(), 'Guacamole', $.CARD.REGULAR, 8));
         }
         
-        //this.drawPile.push(new Card(this.generateRandomID(), 'Future', $.CARD.FUTURE, 9));
+        this.drawPile.push(new Card(this.generateRandomID(), 'Future', $.CARD.FUTURE, 9));
         this.drawPile.push(new Card(this.generateRandomID(), 'Nope', $.CARD.NOPE, 3));
     }
 }

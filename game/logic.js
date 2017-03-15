@@ -1161,13 +1161,11 @@ module.exports = function(io, EK) {
                         }
                     }
                     break;
+
                 case $.CARD.SEETHREE:
                     if (otherPlayerExists(data)) {
                         var other = EK.connectedUsers[data.to];
                         var otherPlayer = game.getPlayer(other);
-
-                        //Set the see one to false
-                        //playedSet.effectPlayed = false;
 
                         //Check if the other player has any cards
                         //Tough luck if a player gets this D:
@@ -1176,46 +1174,24 @@ module.exports = function(io, EK) {
                             
                             socket.emit($.GAME.PLAYER.PLAY, {
                                 error: 'User has no cards in their hand!'
-                            });                     
-                            //playedSet.effectPlayed = true;
+                            });
+
                         } else {
-                            var card2 = otherPlayer.getRandomCard();
+                            // null, or an array ranging from 0 to 2. 
+                            var cardArray = otherPlayer.getThreeRandomCards();
+                            console.log(cardArray);
+                            console.log(cardArray.length);
+
                             //Ask other player to see one card
-                            io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
+                            io.in(game.id).emit($.GAME.PLAYER.SEETHREE, {
                                 to: other.id,
                                 from: socket.id,
-                                card: card2,
+                                cards: cardArray,
                             });
                         }
                     }
                     break;
 
-/*case $.CARDSET.STEAL.BLIND:
-                    if (otherPlayerExists(data)) {
-                        var other = EK.connectedUsers[data.to];
-                        var otherPlayer = game.getPlayer(other);
-                        
-                        if (otherPlayer.hand.length > 0) {
-                            //Remove a random card from the other players hand and add it to the current player
-                            var card = otherPlayer.getRandomCard();
-                            otherPlayer.removeCard(card);
-                            player.addCard(card);
-
-                            //Tell players that a steal occurred
-                            io.in(game.id).emit($.GAME.PLAYER.STEAL, {
-                                to: other.id,
-                                from: socket.id,
-                                card: card,
-                                type: steal
-                            });
-                        } else {
-                            socket.emit($.GAME.PLAYER.PLAY, {
-                                error: 'User has no cards in their hand!'
-                            });
-                        }
-                    }
-                    break;
-*/
                 case $.CARD.FUTURE:
                     //Get the first 3 cards on the top of the draw pile
                     var futureCards = [];
@@ -1226,6 +1202,8 @@ module.exports = function(io, EK) {
                         }
                     }
 
+                    console.log(futureCards);
+                    console.log(futureCards.length);
                     //Send the cards to the player
                     socket.emit($.GAME.PLAYER.FUTURE, {
                         cards: futureCards
