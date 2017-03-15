@@ -97,14 +97,10 @@ jQuery(document).ready(function($) {
         switch (cards.length) {
             case 1:
                 var card = main.gameData.getCardFromHand(cards.data('id'));
-                if (card.type === $C.CARD.FAVOR) {
+                if (card.type === $C.CARD.FAVOR)
                     GameRoom.showFavorSelectOverlay(main);
-                }
                 else if (card.type == $C.CARD.SEEONE) 
-                {
-                    GameRoom.logSystem("Al Jihaad!");
                     GameRoom.showSeeOneSelectOverlay(main);
-                }
                 else 
                 {
                     io.emit($C.GAME.PLAYER.PLAY, { 
@@ -801,11 +797,11 @@ jQuery(document).ready(function($) {
     
 
     io.on($C.GAME.PLAYER.SEEONE, function(data) {
-        GameRoom.logLocal('in io.on!'); 
-        if (data.hasOwnProperty('error'))
-        {   
+        var card = data.card;
+
+        if (data.hasOwnProperty('error'))   
             GameRoom.logError(data.error);
-        } else 
+        else 
         {
             var from = main.users[data.from];
             var to = main.users[data.to];
@@ -815,36 +811,19 @@ jQuery(document).ready(function($) {
             
             //Only set strings if we have the data
             if (from)
-            {
-                fromString = (currentUser.id === from.id) ? "You1" : from.name;
-                toString = (currentUser.id === from.id) ? from.name : "You2";
-            }
+                fromString = (currentUser.id === from.id) ? "You" : from.name;
+            
             if (to)
-            {
-                toString = (currentUser.id === to.id) ? "You3" : to.name;
-                fromString = (currentUser.id === to.id) ? to.name : "You4";
-            }
-            GameRoom.logSystemGreen(fromString + " saw a card from " + toString+ ".5");
-            
-            if (currentUser.id === from.id) 
-                GameRoom.logLocal("Al Bagdadi");
-            else 
-                GameRoom.logLocal("Bomb failed");
+                toString = (currentUser.id === to.id) ? "You" : to.name
 
-            if (currentUser.id === to.id)
-                GameRoom.logLocal("Cat exploded");
-            else
-                GameRoom.logLocal("Cat defused");
+            //Tell all the players that a card was seen from someone.
+            GameRoom.logSystemGreen(fromString + " saw a card from " + toString);
+            
             //Tell the players involved what they lost or gained
-            if (currentUser.id === from.id) {
-                GameRoom.logLocal("You saw a " + data.card.name + " from " + fromString + ".1");
-            }
+            if (currentUser.id === from.id)
+                GameRoom.logLocal(fromString + " saw a " + card.name + " from " + toString);
             if (currentUser.id === to.id)
-            {
-                GameRoom.logLocal(toString + " saw a " + data.card.name + " from you.2");
-            }
-
-            
+                GameRoom.logLocal(fromString + " saw a " + card.name + " from " + toString);
         }
     }); 
 

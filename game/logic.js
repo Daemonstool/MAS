@@ -677,7 +677,7 @@ module.exports = function(io, EK) {
                         }
                     } else {
                         var card = playedSet.cards[0];
-                        console.log(card.type)
+                        // console.log(card.type) "See one card" for SeeOne (as defined in constants.js)
                         switch (card.type) {    
                             case $.CARD.FAVOR:
                                 //Only favor if we have someone to get a favor from
@@ -702,7 +702,6 @@ module.exports = function(io, EK) {
                                 break;
                             case $.CARD.SEETHREE:
                             case $.CARD.SEEONE:
-                                console.log("case $.CARD.SEEONE")
                                 //Only see card if we have someone to get a see card from
                                 
                                 if (!otherPlayerExists(data)) {
@@ -1135,7 +1134,6 @@ module.exports = function(io, EK) {
                     break;
 
                 case $.CARD.SEEONE:
-                    console.log("im here!");
                     if (otherPlayerExists(data)) {
                         var other = EK.connectedUsers[data.to];
                         var otherPlayer = game.getPlayer(other);
@@ -1151,14 +1149,14 @@ module.exports = function(io, EK) {
                             socket.emit($.GAME.PLAYER.PLAY, {
                                 error: 'User has no cards in their hand!'
                             });                     
-                            //playedSet.effectPlayed = true;
+                            playedSet.effectPlayed = true;
                         } else {
                             var card2 = otherPlayer.getRandomCard();
                             //Ask other player to see one card
                             io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
                                 to: other.id,
-                                from: user,
-                                card: card2
+                                from: socket.id,
+                                card: card2,
                             });
                         }
                     }
