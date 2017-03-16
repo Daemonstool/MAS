@@ -8,6 +8,10 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.view.Viewer;
 
+import logic.Atom;
+import logic.Formula;
+import logic.Knows;
+
 public class Model extends MultiGraph{
 	
 	public Model() {
@@ -29,6 +33,7 @@ public class Model extends MultiGraph{
 		}
 		
 		addEdge("w1w2","w1","w2");
+		addEdge("w1w1","w1","w1");
 		addEdge("w1w3","w1","w3");
 		addEdge("w3w1","w3","w1");
 		addEdge("w2w3","w2","w3");
@@ -38,6 +43,14 @@ public class Model extends MultiGraph{
 		
 		addAgent("w1w3","Up");
 		addAgent("w3w1","Down");
+		
+		System.out.println(new Atom("p").evaluate(getNode("w1")));
+		System.out.println(new Atom("p").evaluate(getNode("w2")));
+		System.out.println(new Atom("p").evaluate(getNode("w3")));
+		Formula f = new Knows(new Atom("p"),"Henk");
+		System.out.println(f.evaluate(getNode("w1")));
+		
+		System.out.println();
 		
 		display();
 	}
@@ -78,7 +91,7 @@ public class Model extends MultiGraph{
 		Iterator<Node> nodes = getNodeIterator();
 		while(nodes.hasNext()){
 			Node n = nodes.next();
-			n.setAttribute("ui.label", n.getAttribute("atoms").toString());
+			n.setAttribute("ui.label", n.getId() + ": " + n.getAttribute("atoms").toString());
 		}
 		Iterator<Edge> edges = getEdgeIterator();
 		while(edges.hasNext()){
