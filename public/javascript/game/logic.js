@@ -849,6 +849,10 @@ jQuery(document).ready(function($) {
         }
     });
 
+    io.on($C.GAME.PLAYER.GIVETOLEFT, function(data) {
+        GameRoom.logLocal("in give left!");
+    });
+
     io.on($C.GAME.PLAYER.SEETHREE, function(data) {
 
         if (data.hasOwnProperty('error'))   

@@ -1198,41 +1198,53 @@ module.exports = function(io, EK) {
                     // The random cards on the same index.
                     var randomCards = [];
 
-                    var allPlayers = game.getPlayers();
+
+
                     alivePlayer = game.getPlayer(user); // current player.
 
-                    for (var i = 0; i < game.playerAliveCount; i++) {
-                        // check if players have a card (.cardCount)
+                    for (var i = 0; i < game.playerAliveCount(); ) {
+                        // check if players have a card (.hand.length)
                         // if not, do not remove a card.
-                        // TODO: check when someone has 1 card, is not the card just given to him.
-                        if (allPlayers[i].cardCount)
+                        console.log("---------");
+                        if (alivePlayer.hand.length)
                         {
-                            randCard = allPlayers[i].getRandomCard();
+                            randCard = alivePlayer.getRandomCard();
                             //This card cannot be a card that is just given to you
-                            //TODO FIX SYNTAX.
-                            for card in randomCards:
-                                if card.id == randCard.id
-                                    randCard = allPlayers[i].getRandomCard();
+                            for (var j = 0; j < randomCards.length; j++)
+                                while (card.id == randomCards[j].id)
+                                    randCard = alivePlayer.getRandomCard();
 
+                            console.log((game.cUserIndex + i) % game.playerAliveCount());   
+                            console.log("gives");
+                            console.log(randCard);
                             // remove the card.
-                            allPlayers[i].removeCard(randCard);
+                            alivePlayer.removeCard(randCard);
+                            
                             // keep track of the card.
-                            randomCards.push(removeCard);
+                            randomCards.push(randCard);
                             // keep track of the index.
-                            playerIdxToLeft.push(i);
+                            playerIdxToLeft.push(i);    
 
                             // duh.
-                            alivePlayer = game.getNextAlive(game.cUserIndex);
+                            console.log(alivePlayer);   
+   
+                            
+                            alivePlayer = game.playerFromIndex((game.cUserIndex + ++i) % game.playerAliveCount());
                             
                             // add it to the next player
                             alivePlayer.addCard(randCard);
 
+                            console.log("to");
+                            console.log((game.cUserIndex + i) % game.playerAliveCount());   
                             //don't increment the aliveplayer again but continue in the loop:
                             continue;
 
                         } 
+                        console.log((game.cUserIndex + i) % game.playerAliveCount());   
+                        console.log("gives nothing to ");
                         // increment aliveplayer
-                        alivePlayer = game.getNextAlive(game.cUserIndex);
+                        alivePlayer = game.playerFromIndex((game.cUserIndex + ++i) % game.playerAliveCount());
+                        console.log((game.cUserIndex + i) % game.playerAliveCount());   
                     }
 
 

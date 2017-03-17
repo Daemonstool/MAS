@@ -303,6 +303,15 @@ Game.prototype.playerForCurrentIndex = function() {
 }
 
 /**
+ * Get player for the current user index
+ * @returns {Object} The player
+ */
+Game.prototype.playerFromIndex = function(index) {
+    return this.players[index];
+}
+
+
+/**
  * Draw cards from the pile and adds it to the players hand
  * @param   {Object} player The player
  * @param   {Number} amount Amount of cards to draw
