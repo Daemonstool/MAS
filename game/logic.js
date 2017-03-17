@@ -677,6 +677,7 @@ module.exports = function(io, EK) {
                         }
                     } else {
                         var card = playedSet.cards[0];
+                        // console.log(card.type) "See one card" for SeeOne (as defined in constants.js)
                         switch (card.type) {    
                             case $.CARD.FAVOR:
                                 //Only favor if we have someone to get a favor from
@@ -701,7 +702,6 @@ module.exports = function(io, EK) {
                                 break;
                             case $.CARD.SEETHREE:
                             case $.CARD.SEEONE:
-                                alert("case $.CARD.SEEONE")
                                 //Only see card if we have someone to get a see card from
                                 
                                 if (!otherPlayerExists(data)) {
@@ -877,7 +877,9 @@ module.exports = function(io, EK) {
             }
         });
 
-        socket.on($.GAME.PLAYER.SEEONE, function(data){
+        /*Deze methode is voor de andere speler om de kaart te selecteren die naar degene gaat die de favor speelt.
+
+        /*socket.on($.GAME.PLAYER.SEEONE, function(data){
             //Get the game and check if it exists
             var game = EK.gameList[data.gameId];
 
@@ -921,7 +923,6 @@ module.exports = function(io, EK) {
 
                             //Notify players of the see one
                             io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
-                                success: true,
                                 to: other,
                                 from: user,
                                 card: card
@@ -936,7 +937,7 @@ module.exports = function(io, EK) {
                     error: 'Something went wrong'
                 });
             }
-        });
+        });*/
 
 
     });
@@ -1138,54 +1139,57 @@ module.exports = function(io, EK) {
                         var otherPlayer = game.getPlayer(other);
 
                         //Set the see one to false
-                        playedSet.effectPlayed = false;
+                        //playedSet.effectPlayed = false;
 
                         //Check if the other player has any cards
                         //Tough luck if a player gets this D:
                         //This can happen if the favor goes through even with nopes and the person has no card
                         if (otherPlayer && otherPlayer.hand.length < 1) {
+                            
                             socket.emit($.GAME.PLAYER.PLAY, {
                                 error: 'User has no cards in their hand!'
                             });                     
-                            playedSet.effectPlayed = true;
+                            //playedSet.effectPlayed = true;
                         } else {
+                            var card2 = otherPlayer.getRandomCard();
                             //Ask other player to see one card
                             io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
                                 to: other.id,
-                                from: user,
-                                card: card
+                                from: socket.id,
+                                card: card2,
                             });
                         }
                     }
                     break;
 
-
-/*case $.CARDSET.STEAL.BLIND:
+                case $.CARD.SEETHREE:
                     if (otherPlayerExists(data)) {
                         var other = EK.connectedUsers[data.to];
                         var otherPlayer = game.getPlayer(other);
-                        
-                        if (otherPlayer.hand.length > 0) {
-                            //Remove a random card from the other players hand and add it to the current player
-                            var card = otherPlayer.getRandomCard();
-                            otherPlayer.removeCard(card);
-                            player.addCard(card);
 
-                            //Tell players that a steal occurred
-                            io.in(game.id).emit($.GAME.PLAYER.STEAL, {
-                                to: other.id,
-                                from: socket.id,
-                                card: card,
-                                type: steal
-                            });
-                        } else {
+                        //Check if the other player has any cards
+                        //Tough luck if a player gets this D:
+                        //This can happen if the favor goes through even with nopes and the person has no card
+                        if (otherPlayer && otherPlayer.hand.length < 1) {
+                            
                             socket.emit($.GAME.PLAYER.PLAY, {
                                 error: 'User has no cards in their hand!'
+                            });
+
+                        } else {
+                            // null, or an array ranging from 0 to 2. 
+                            var cardArray = otherPlayer.getThreeRandomCards();
+
+                            //Ask other player to see one card
+                            io.in(game.id).emit($.GAME.PLAYER.SEETHREE, {
+                                to: other.id,
+                                from: socket.id,
+                                cards: cardArray,
                             });
                         }
                     }
                     break;
-*/
+
                 case $.CARD.FUTURE:
                     //Get the first 3 cards on the top of the draw pile
                     var futureCards = [];

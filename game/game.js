@@ -384,18 +384,20 @@ Game.prototype.resetDeck = function() {
            
             // commented out for testing: 
             // this.drawPile.push(new Card(this.generateRandomID(), 'Attack', $.CARD.ATTACK, 0));
-            this.drawPile.push(new Card(this.generateRandomID(), 'Skip', $.CARD.SKIP, 1));
-            this.drawPile.push(new Card(this.generateRandomID(), 'Favor', $.CARD.FAVOR, 2));
+            //this.drawPile.push(new Card(this.generateRandomID(), 'Skip', $.CARD.SKIP, 1));
+            //this.drawPile.push(new Card(this.generateRandomID(), 'Favor', $.CARD.FAVOR, 2));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Shuffle', $.CARD.SHUFFLE, 3));
             
-            this.drawPile.push(new Card(this.generateRandomID(), 'SeeOne', $.CARD.SHUFFLE, 10));
+            this.drawPile.push(new Card(this.generateRandomID(), 'SeeOne', $.CARD.SEEONE, 10));
+            this.drawPile.push(new Card(this.generateRandomID(), 'SeeThree', $.CARD.SEETHREE, 11));
+
             //Only add the reverse if we have more than 2 players since with 2 people order doesn't matter
             if (this.players.length > 2) {
                 this.drawPile.push(new Card(this.generateRandomID(), 'Reverse', $.CARD.REVERSE, 3));
             }
             
             //Regular
-            this.drawPile.push(new Card(this.generateRandomID(), 'Tomato', $.CARD.REGULAR, 4));
+            //this.drawPile.push(new Card(this.generateRandomID(), 'Tomato', $.CARD.REGULAR, 4));
             // commented out for testing:
             //this.drawPile.push(new Card(this.generateRandomID(), 'Barbecue', $.CARD.REGULAR, 5));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Mustard', $.CARD.REGULAR, 6));
