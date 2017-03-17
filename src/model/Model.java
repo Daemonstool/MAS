@@ -1,7 +1,10 @@
 package model;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Scanner;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -43,6 +46,7 @@ public class Model extends MultiGraph{
 		
 		addAgent("w1w3","Up");
 		addAgent("w3w1","Down");
+		addAgent("w1w1", "Henk");
 		
 		System.out.println(new Atom("p").evaluate(getNode("w1")));
 		System.out.println(new Atom("p").evaluate(getNode("w2")));
@@ -70,8 +74,18 @@ public class Model extends MultiGraph{
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public Edge addEdge(String id, String idFrom, String idTo){
 		Edge e = super.addEdge(idFrom+idTo, idFrom, idTo,true);
+		if(getEdge(idTo+idFrom) != null){
+			//symmetric relation, do some styling
+			System.out.println(e.getId());
+			e.setAttribute("ui.class", "symmetric");//tag only applies to one side to separate the labels
+		}
+		if(idFrom.equals(idTo)){
+			//reflexive relation, tag it
+			e.setAttribute("ui.class", "reflexive");
+		}
 		e.setAttribute("agents", new ArrayList<String>());
 		return e;
 	}
@@ -88,10 +102,26 @@ public class Model extends MultiGraph{
 	
 	@Override
 	public Viewer display(){
+		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+		addAttribute("ui.antialias");
+		addAttribute("ui.quality");//remove if real-time rendering becomes laggy
+		
+		String stylesheet;
+		try {
+			Scanner s = new Scanner(new File("graphstyle.css"));
+			stylesheet = s.useDelimiter("\\Z").next();
+			s.close();
+		} catch (FileNotFoundException e1) {
+			System.err.println("Stylesheet not found!");
+			stylesheet =  "";
+			e1.printStackTrace();
+		}
+		addAttribute("ui.stylesheet",stylesheet);
+		
 		Iterator<Node> nodes = getNodeIterator();
 		while(nodes.hasNext()){
 			Node n = nodes.next();
-			n.setAttribute("ui.label", n.getId() + ": " + n.getAttribute("atoms").toString());
+			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
 		}
 		Iterator<Edge> edges = getEdgeIterator();
 		while(edges.hasNext()){

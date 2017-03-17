@@ -1,0 +1,33 @@
+graph{ 
+    padding: 45px; 
+}
+
+node{
+    text-background-color: #A9A9A9;
+    text-background-mode: rounded-box;
+    text-alignment: at-left;
+    text-padding: 7px, 5px;
+    text-offset: -10px, 0px;
+    text-size: 14;
+    text-style: bold;
+}
+
+edge{
+    text-background-color: #A9A9A9;
+	text-background-mode: rounded-box;
+    text-alignment: along;
+    text-padding: 3px;
+    text-size: 14;
+    text-offset: 0px, 20px;
+    stroke-mode: plain;
+    stroke-width: 1.2;
+}
+
+edge.symmetric{
+    text-offset: 0px, -20px;
+}
+
+edge.reflexive{
+    text-alignment: above;
+    text-offset: 40px, -15px;
+}
