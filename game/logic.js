@@ -1190,6 +1190,33 @@ module.exports = function(io, EK) {
                     }
                     break;
 
+                case $.CARD.GIVETOLEFT:
+                    // Get a card from each player
+                    var cardsToLeft = [];
+                    var allPlayers  = game.getPlayers();
+                    
+                    // check if players are alive: allPlayers[i].alive
+                    // check if
+
+                    // game.cUserIndex
+
+                    for (var i = 0; i < game.players.length; i++) {
+                        if (allPlayers[i].alive && allPlayers[i].cardCount)
+                        {
+                            allPlayers[i].getRandomCard();
+                        }
+
+
+                    }
+
+                    //Ask other player to see one card
+                    io.in(game.id).emit($.GAME.PLAYER.GIVETOLEFT, {
+                        to: other.id,
+                        from: socket.id,
+                        cards: cardArray,
+                    });
+                    break;
+
                 case $.CARD.FUTURE:
                     //Get the first 3 cards on the top of the draw pile
                     var futureCards = [];
