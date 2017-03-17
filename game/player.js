@@ -157,26 +157,32 @@ Player.prototype.getThreeRandomCards = function() {
     if (this.hand.length == 0) 
         return null;
     
-    var randomInt1 = Math.floor(Math.random() * (this.hand.length - 1));
+    var randomInt1 = Math.floor(Math.random() * (this.hand.length));
     cards.push(this.hand[randomInt1]);
     
     if (this.hand.length == 1)
         return cards;
     
     // randomInt2 should not equal randomInt1.
-    var randomInt2 = Math.floor(Math.random() * (this.hand.length - 1));
+    var randomInt2 = Math.floor(Math.random() * (this.hand.length));
     while (randomInt2 == randomInt1)
-        var randomInt2 = Math.floor(Math.random() * (this.hand.length - 1));
-
+    {
+        console.log("stuck in loop1 " + randomInt1 + " " + randomInt2);
+	
+        var randomInt2 = Math.floor(Math.random() * (this.hand.length));
+    }
     cards.push(this.hand[randomInt2]);
     
     if (this.hand.length == 2)
         return cards;
     
     // randomInt3 should not be equal to randomInt1 and randomInt2.
-    var randomInt3 = Math.floor(Math.random() * (this.hand.length - 1));
+    var randomInt3 = Math.floor(Math.random() * (this.hand.length));
     while (randomInt3 == randomInt1 || randomInt3 == randomInt2)
-        var randomInt3 = Math.floor(Math.random() * (this.hand.length - 1));
+    {
+        console.log("stuck in loop2 " + randomInt1 + " " + randomInt2 + " " + randomInt3);
+        var randomInt3 = Math.floor(Math.random() * (this.hand.length));
+    }
         
     cards.push(this.hand[randomInt3]);    
     return cards;
