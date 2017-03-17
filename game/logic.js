@@ -1191,30 +1191,58 @@ module.exports = function(io, EK) {
                     break;
 
                 case $.CARD.GIVETOLEFT:
-                    // Get a card from each player
-                    var cardsToLeft = [];
-                    var allPlayers  = game.getPlayers();
                     
-                    // check if players are alive: allPlayers[i].alive
-                    // check if
+                    // Get a index from each alive player that passes a card to the next player.
+                    var playerIdxToLeft = [];
 
-                    // game.cUserIndex
+                    // The random cards on the same index.
+                    var randomCards = [];
 
-                    for (var i = 0; i < game.players.length; i++) {
-                        if (allPlayers[i].alive && allPlayers[i].cardCount)
+                    var allPlayers = game.getPlayers();
+                    alivePlayer = game.getPlayer(user); // current player.
+
+                    for (var i = 0; i < game.playerAliveCount; i++) {
+                        // check if players have a card (.cardCount)
+                        // if not, do not remove a card.
+                        // TODO: check when someone has 1 card, is not the card just given to him.
+                        if (allPlayers[i].cardCount)
                         {
-                            allPlayers[i].getRandomCard();
-                        }
+                            randCard = allPlayers[i].getRandomCard();
+                            //This card cannot be a card that is just given to you
+                            //TODO FIX SYNTAX.
+                            for card in randomCards:
+                                if card.id == randCard.id
+                                    randCard = allPlayers[i].getRandomCard();
 
+                            // remove the card.
+                            allPlayers[i].removeCard(randCard);
+                            // keep track of the card.
+                            randomCards.push(removeCard);
+                            // keep track of the index.
+                            playerIdxToLeft.push(i);
 
+                            // duh.
+                            alivePlayer = game.getNextAlive(game.cUserIndex);
+                            
+                            // add it to the next player
+                            alivePlayer.addCard(randCard);
+
+                            //don't increment the aliveplayer again but continue in the loop:
+                            continue;
+
+                        } 
+                        // increment aliveplayer
+                        alivePlayer = game.getNextAlive(game.cUserIndex);
                     }
+
 
                     //Ask other player to see one card
                     io.in(game.id).emit($.GAME.PLAYER.GIVETOLEFT, {
-                        to: other.id,
-                        from: socket.id,
-                        cards: cardArray,
+                        currentIdx: game.cUserIndex,
+                        playerIdx: playerIdxToLeft,
+                        cards: randomCards,
                     });
+
                     break;
 
                 case $.CARD.FUTURE:
