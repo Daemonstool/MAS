@@ -1,7 +1,6 @@
 package model;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -11,13 +10,7 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.view.Viewer;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import io.socket.IOAcknowledge;
-import io.socket.IOCallback;
-import io.socket.SocketIO;
-import io.socket.SocketIOException;
 import logic.Atom;
 import logic.Formula;
 import logic.Knows;
@@ -27,52 +20,7 @@ public class Model extends MultiGraph{
 	public Model() {
 		super("Arbitrary String #1");
 		
-		SocketIO socket;
-		try {
-			socket = new SocketIO("http://localhost:4000/");
-			socket.connect(new IOCallback() {
-			        @Override
-			        public void onMessage(JSONObject json, IOAcknowledge ack) {
-			            try {
-			                System.out.println("Server said:" + json.toString(2));
-			    } catch (JSONException e) {
-			        e.printStackTrace();
-			    }
-			}
-			
-			@Override
-			public void onMessage(String data, IOAcknowledge ack) {
-			    System.out.println("Server said: " + data);
-			}
-			
-			@Override
-			public void onError(SocketIOException socketIOException) {
-			    System.out.println("an Error occured");
-			    socketIOException.printStackTrace();
-			}
-			
-			@Override
-			public void onDisconnect() {
-			    System.out.println("Connection terminated.");
-			}
-			
-			@Override
-			public void onConnect() {
-			    System.out.println("Connection established");
-			}
-			
-			@Override
-			public void on(String event, IOAcknowledge ack, Object... args) {
-			    System.out.println("Server triggered event '" + event + "'");
-			    }
-			});
-			
-			// This line is cached until the connection is establisched.
-			socket.send("Hello Server!");
-		} catch (MalformedURLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		
        
 		addNode("w1");
 		addNode("w2");

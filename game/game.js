@@ -383,7 +383,7 @@ Game.prototype.resetDeck = function() {
             //Special
            
             // commented out for testing: 
-            // this.drawPile.push(new Card(this.generateRandomID(), 'Attack', $.CARD.ATTACK, 0));
+            this.drawPile.push(new Card(this.generateRandomID(), 'Attack', $.CARD.ATTACK, 0));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Skip', $.CARD.SKIP, 1));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Favor', $.CARD.FAVOR, 2));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Shuffle', $.CARD.SHUFFLE, 3));
