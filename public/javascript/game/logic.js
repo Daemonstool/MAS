@@ -850,7 +850,19 @@ jQuery(document).ready(function($) {
     });
 
     io.on($C.GAME.PLAYER.GIVETOLEFT, function(data) {
-        GameRoom.logLocal("in give left!");
+        if (data.hasOwnProperty('error'))   
+            GameRoom.logError(data.error);
+        else 
+        {
+            //Removed cards associated with the playerIdx
+            var cards = data.cards;
+            var playerIdx = data.playerIdx;
+            //Current player index (not necessary)?
+            var currentIdx = data.currentIdx;
+        
+        }
+
+
     });
 
     io.on($C.GAME.PLAYER.SEETHREE, function(data) {
@@ -886,19 +898,6 @@ jQuery(document).ready(function($) {
                     GameRoom.logLocal(fromString + " saw a " + cards[i].name + " from " + toString);
             }
         }
-        /*        var cards = data.cards;
-        if (cards.length > 0) {
-            //Tell player of the cards they see
-            var string = "You see a ";
-            $.each(cards, function(index, card) {
-                string += card.name + ', ';
-            });
-            string = string.slice(0, -2); //Remove ', '
-            GameRoom.logLocal(string);
-        } else {
-            GameRoom.logLocal('There is nothing to see!');
-        }*/
-
     }); 
 
 

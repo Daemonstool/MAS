@@ -1120,7 +1120,9 @@ module.exports = function(io, EK) {
                             socket.emit($.GAME.PLAYER.PLAY, {
                                 error: 'User has no cards in their hand!'
                             });                     
-                            playedSet.effectPlayed = true;
+                        
+                        playedSet.effectPlayed = true;
+                        
                         } else {
                             //Ask other player for favor
                             io.in(game.id).emit($.GAME.PLAYER.FAVOR, {
@@ -1197,9 +1199,6 @@ module.exports = function(io, EK) {
 
                     // The random cards on the same index.
                     var randomCards = [];
-
-
-
                     alivePlayer = game.getPlayer(user); // current player.
 
                     for (var i = 0; i < game.playerAliveCount(); ) {
@@ -1223,12 +1222,9 @@ module.exports = function(io, EK) {
                             // keep track of the card.
                             randomCards.push(randCard);
                             // keep track of the index.
-                            playerIdxToLeft.push(i);    
+                            playerIdxToLeft.push((game.cUserIndex + i) % game.playerAliveCount());    
 
                             // duh.
-                            console.log(alivePlayer);   
-   
-                            
                             alivePlayer = game.playerFromIndex((game.cUserIndex + ++i) % game.playerAliveCount());
                             
                             // add it to the next player
@@ -1238,7 +1234,6 @@ module.exports = function(io, EK) {
                             console.log((game.cUserIndex + i) % game.playerAliveCount());   
                             //don't increment the aliveplayer again but continue in the loop:
                             continue;
-
                         } 
                         console.log((game.cUserIndex + i) % game.playerAliveCount());   
                         console.log("gives nothing to ");
@@ -1247,6 +1242,7 @@ module.exports = function(io, EK) {
                         console.log((game.cUserIndex + i) % game.playerAliveCount());   
                     }
 
+                    //TODO: refresh all the players their hands.
 
                     //Ask other player to see one card
                     io.in(game.id).emit($.GAME.PLAYER.GIVETOLEFT, {
