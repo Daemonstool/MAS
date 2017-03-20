@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-
+ 
 /**
   Exloding Ketchup. 
   A Exploding Kittens clone without kittens.
