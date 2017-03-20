@@ -10,7 +10,8 @@ Welcome to the work-in-progress report and access point for our "Exploding Kitte
 In this project, we want to model the game ["Exploding Kittens"](https://www.explodingkittens.com/) and represent the knowledge of the different players in Kripke models. We already succeeded in the first part, as an open source project [Exploding Ketchup](https://github.com/Mikunj/Exploding-Ketchup) provided much of the game in code. However, we decided to add a few cards that enhance the use of knowledge in the game, such as:
 * a card that has players pass a card on to their neighbours;
 * a card that allows players to change the order of the central stack;
-* a card that allows players to see three cards from their opponent rather than one.
+* a card that allows players to see one card from a chosen opponent;
+* a card that allows players to see three cards from a chosen opponent;
 Currently only the last card is implemented.
 
 To model the Kripke model of the knowledge in a game we created a Java application relying heavily on the [GraphStream](http://graphstream-project.org/) library. This library provided all the essentials for representing the graphs that Kripke models essentially are and as an added bonus allows for some neat real-time rendering. As our goal is to view the knowledge in a game as it is played, having the model update in parallel to the game being played is very nice.
@@ -22,7 +23,7 @@ A preview of the game is playable [here](https://mas-ek.herokuapp.com/). You can
 
 The Java application needs to be downloaded separately [here]. Once downloaded, extract the zipped folder somewhere and run the executable JAR. Keep the `stylesheet.css` in the same folder as it defines the makeup of the graph. The JAR can be run as an executable independently, but it is encouraged you start it in a terminal (using `java -jar CoolGuys.jar`) as this will give you the debug messages that of right now are our main method of showing results. Naturally, you must have Java installed for this to work. The project was developed in Java 8.
 
-When the Java application prompts for an IP, paste in the website link (`https://mas-ek.herokuapp.com/`), and continue. It will connect to the server and start receiving messages representing the action performed by players.
+When running the Java application there are two options. You can either connect to the already running server hosted at https://mas-ek.herokuapp.com/ or you can download the repository and host the server yourself. Either way, once you are connected to a server messages from the Exploding Ketchup game will stream to the Java application which represent the actions of players while they are playing the game.
 
 # [](#header-3)Results so far
 As you will have seen if you have done the above, the terminal will print some code representing each action by players. There is even some prediction going on as players use the "nope" card, which cancels earlier played cards. You can also see a simple model with three states and some relations in the window opened by the Java application. Sadly, this is really but an example model and the actions being sent to the Java application are not connected yet. This is because this is by far the largest part of the work: making sure each action updates the model in the correct way. We have set up everything up to the point that we could solely focus on this, and that is where we stand right now.
