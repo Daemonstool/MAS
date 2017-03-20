@@ -29,37 +29,38 @@ import logic.Knows;
 public class Model extends MultiGraph {
 
 	private ArrayList<String> messages = new ArrayList<>();
+
 	public Model() {
 		super("Arbitrary String #1");
 
 		Socket socket;
 		try {
-			
-	        JTextField field1 = new JTextField("");
-	        JTextField field2 = new JTextField("");
-	        JPanel panel = new JPanel(new GridLayout(0, 1));
-	        panel.add(new JLabel("IP (default localhost):"));
-	        panel.add(field1);
-	        panel.add(new JLabel("port (default 3000):"));
-	        panel.add(field2);
-	        
-	        String ip = "localhost";
-	        String port = "3000";
 
-	        String[] buttons = { "Connect", "Exit"};
+			JTextField field1 = new JTextField("");
+			JTextField field2 = new JTextField("");
+			JPanel panel = new JPanel(new GridLayout(0, 1));
+			panel.add(new JLabel("IP (default localhost):"));
+			panel.add(field1);
+			panel.add(new JLabel("port (default 3000):"));
+			panel.add(field2);
 
-	        int result = JOptionPane.showOptionDialog(null, panel, "Connect to game", 
-	                JOptionPane.WARNING_MESSAGE, 0, null, buttons, buttons[0]);
+			String ip = "localhost";
+			String port = "3000";
 
-	        System.out.println(result);
-	        
-	        if (result == 0) {
-	            ip = (field1.getText().isEmpty()) ? "localhost" : field1.getText();
-	            port = (field2.getText().isEmpty()) ? "3000" : field2.getText();
-	        } else if (result == 1){
-	            System.exit(0);
-	        }
-	        
+			String[] buttons = { "Connect", "Exit" };
+
+			int result = JOptionPane.showOptionDialog(null, panel, "Connect to game", JOptionPane.WARNING_MESSAGE, 0,
+					null, buttons, buttons[0]);
+
+			System.out.println(result);
+
+			if (result == 0) {
+				ip = (field1.getText().isEmpty()) ? "localhost" : field1.getText();
+				port = (field2.getText().isEmpty()) ? "3000" : field2.getText();
+			} else if (result == 1) {
+				System.exit(0);
+			}
+
 			socket = IO.socket("http://" + ip + ":" + port);
 			socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
@@ -74,7 +75,7 @@ public class Model extends MultiGraph {
 				@Override
 				public void call(Object... args) {
 					messages.add(args[0].toString());
-					System.out.println("Appended: "+ "'" + args[0] + "'" + " to the list of knowledge");
+					System.out.println("Appended: " + "'" + args[0] + "'" + " to the list of knowledge");
 				}
 
 			}).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
