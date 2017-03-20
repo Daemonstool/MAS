@@ -254,8 +254,8 @@ public class Model extends MultiGraph {
 				
 				break;
 			case "S1":
-				addNode("w4");
-				addAtom(getWorldName(),"c1");
+				Node n = addNode(getWorldName());
+				addAtom(n.getId(),"c1");
 				break;
 			case "S3":
 				
