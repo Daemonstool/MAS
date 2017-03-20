@@ -2,25 +2,21 @@
 layout: default
 ---
 
-Text can be **bold**, _italic_, or ~~strikethrough~~.
+This project is made for the course Multi-Agent Systems given at the University of Groningen. Any questions regarding this project should be directed to maathuishenry@gmail.com or alternatively a GitHub issue can be made. 
 
 [Link to another page](another-page).
 
-There should be whitespace between paragraphs.
-
-There should be whitespace between paragraphs. We recommend including a README, or a file with information about your project.
-
-# [](#header-1)Header 1
+# [](#header-1)Introduction
 
 This is a normal paragraph following a header. GitHub is a code hosting platform for version control and collaboration. It lets you and others work together on projects from anywhere.
 
-## [](#header-2)Header 2
+# [](#header-2)Specification
 
 > This is a blockquote following a header.
 >
 > When something is important enough, you do it even if the odds are not in your favor.
 
-### [](#header-3)Header 3
+# [](#header-3)Game
 
 ```js
 // Javascript code with syntax highlighting.
@@ -37,13 +33,13 @@ GitHubPages::Dependencies.gems.each do |gem, version|
 end
 ```
 
-#### [](#header-4)Header 4
+# [](#header-4)Results
 
 *   This is an unordered list following a header.
 *   This is an unordered list following a header.
 *   This is an unordered list following a header.
 
-##### [](#header-5)Header 5
+# [](#header-5)Conclusion
 
 1.  This is an ordered list following a header.
 2.  This is an ordered list following a header.
