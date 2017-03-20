@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Scanner;
@@ -21,10 +22,13 @@ import logic.Formula;
 import logic.Knows;
 
 public class Model extends MultiGraph {
+	
+	private int worldCount;
 
 	private ArrayList<String> messages = new ArrayList<>();
 	public Model() {
 		super("Arbitrary String #1");
+		this.worldCount = 0;
 
 		Socket socket;
 		try {
@@ -40,9 +44,17 @@ public class Model extends MultiGraph {
 
 				@Override
 				public void call(Object... args) {
-					messages.add(args[0].toString());
-					System.out.println("Appended: "+ "'" + args[0] + "'" + " to the list of knowledge");
-					display();
+					String message = args[0].toString();
+					messages.add(message);
+					String[] substrings = message.split(" ");
+					if(substrings.length > 0){
+						String type = substrings[0];
+						ArrayList<String> arguments = new ArrayList<String>(Arrays.asList(Arrays.copyOfRange(substrings,1,substrings.length)));
+						System.out.println("New message of type " + type + " with arguments " + arguments.toString());
+						update(type,arguments);
+					}else{
+						System.err.println("Invalid message: " + message);
+					}
 				}
 
 			}).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
@@ -59,9 +71,9 @@ public class Model extends MultiGraph {
 			e.printStackTrace();
 		}
 
-		addNode("w1");
-		addNode("w2");
-		addNode("w3");
+		addNode(getWorldName());
+		addNode(getWorldName());
+		addNode(getWorldName());
 
 		Iterator<Node> nodes = getNodeIterator();
 		Random r = new Random();
@@ -96,9 +108,12 @@ public class Model extends MultiGraph {
 		System.out.println();
 
 		display();
-		display();
-		display();
 		
+	}
+	
+	private String getWorldName(){
+		//generate the next world id
+		return "w" + ++worldCount;
 	}
 
 	@Override
@@ -148,8 +163,7 @@ public class Model extends MultiGraph {
 	public Viewer display() {
 		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 		addAttribute("ui.antialias");
-		addAttribute("ui.quality");// remove if real-time rendering becomes
-									// laggy
+		addAttribute("ui.quality");// remove if real-time rendering becomes laggy
 
 		String stylesheet;
 		try {
@@ -175,6 +189,57 @@ public class Model extends MultiGraph {
 		}
 
 		return super.display();
+	}
+	
+	private void update(String type, ArrayList<String> args){
+		switch(type){
+			case "STF":
+				
+				break;
+			case "BS":
+				
+				break;
+			case "NS":
+				
+				break;
+			case "DS":
+				
+				break;
+			case "NP":
+				
+				break;
+			case "SH":
+				
+				break;
+			case "EK":
+				
+				break;
+			case "ATT":
+				
+				break;
+			case "FV":
+				
+				break;
+			case "S1":
+				addNode("w4");
+				addAtom(getWorldName(),"c1");
+				break;
+			case "S3":
+				
+				break;
+			case "AF":
+				
+				break;
+			case "SP":
+				
+				break;
+			case "DC":
+				
+				break;
+			default:
+				
+				break;
+		}
 	}
 
 	public static void main(String[] args) {
