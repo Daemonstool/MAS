@@ -7,113 +7,26 @@ This project is done for the course Multi-Agent Systems given at the University 
 [Link to another page](another-page).
 
 # [](#header-1)Introduction
+Welcome to the work-in-progress report and access point for our "Exploding Kittens"-related project. There will not be a lot of report as of now, as the project is not finished, but we will provide enough information for you to be able to view our progress.
 
-This is a normal paragraph following a header. GitHub is a code hosting platform for version control and collaboration. It lets you and others work together on projects from anywhere.
+In this project, we want to model the game ["Exploding Kittens"](https://www.explodingkittens.com/) and represent the knowledge of the different players in Kripke models. We already succeeded in the first part, as an open source project [Exploding Ketchup](https://github.com/Mikunj/Exploding-Ketchup) provided much of the game in code. However, we decided to add a few cards that enhance the use of knowledge in the game, such as:
+* a card that has players pass a card on to their neighbours;
+* a card that allows players to change the order of the central stack;
+* a card that allows players to see three cards from their opponent rather than one.
+Currently only the last card is implemented.
 
-# [](#header-2)Specification
+To model the Kripke model of the knowledge in a game we created a Java application relying heavily on the [GraphStream](http://graphstream-project.org/) library. This library provided all the essentials for representing the graphs that Kripke models essentially are and as an added bonus allows for some neat real-time rendering. As our goal is to view the knowledge in a game as it is played, having the model update in parallel to the game being played is very nice.
 
-> This is a blockquote following a header.
->
-> When something is important enough, you do it even if the odds are not in your favor.
+The Java application is an independent part that remotely connects to the game and receives messages from the game as it runs. These messages are used to update the model.
 
-# [](#header-3)Game
+# [](#header-2)Running the Game
+A preview of the game is playable [here](https://mas-ek.herokuapp.com/). You can sign in with any username to your liking, and start a game. Find someone else to sign in, and they can join the game you started. If you can't find anyone else right now, you can also sign in in two different tabs and play against yourself.
 
-```js
-// Javascript code with syntax highlighting.
-var fun = function lang(l) {
-  dateformat.i18n = require('./lang/' + l)
-  return true;
-}
-```
+The Java application needs to be downloaded separately [here]. Once downloaded, extract the zipped folder somewhere and run the executable JAR. Keep the `stylesheet.css` in the same folder as it defines the makeup of the graph. The JAR can be run as an executable independently, but it is encouraged you start it in a terminal (using `java -jar CoolGuys.jar`) as this will give you the debug messages that of right now are our main method of showing results. Naturally, you must have Java installed for this to work. The project was developed in Java 8.
 
-```ruby
-# Ruby code with syntax highlighting
-GitHubPages::Dependencies.gems.each do |gem, version|
-  s.add_dependency(gem, "= #{version}")
-end
-```
+When the Java application prompts for an IP, paste in the website link (`https://mas-ek.herokuapp.com/`), and continue. It will connect to the server and start receiving messages representing the action performed by players.
 
-# [](#header-4)Results
+# [](#header-3)Results so far
+As you will have seen if you have done the above, the terminal will print some code representing each action by players. There is even some prediction going on as players use the "nope" card, which cancels earlier played cards. You can also see a simple model with three states and some relations in the window opened by the Java application. Sadly, this is really but an example model and the actions being sent to the Java application are not connected yet. This is because this is by far the largest part of the work: making sure each action updates the model in the correct way. We have set up everything up to the point that we could solely focus on this, and that is where we stand right now.
 
-*   This is an unordered list following a header.
-*   This is an unordered list following a header.
-*   This is an unordered list following a header.
-
-# [](#header-5)Conclusion
-
-1.  This is an ordered list following a header.
-2.  This is an ordered list following a header.
-3.  This is an ordered list following a header.
-
-###### [](#header-6)Header 6
-
-| head1        | head two          | three |
-|:-------------|:------------------|:------|
-| ok           | good swedish fish | nice  |
-| out of stock | good and plenty   | nice  |
-| ok           | good `oreos`      | hmm   |
-| ok           | good `zoute` drop | yumm  |
-
-### There's a horizontal rule below this.
-
-* * *
-
-### Here is an unordered list:
-
-*   Item foo
-*   Item bar
-*   Item baz
-*   Item zip
-
-### And an ordered list:
-
-1.  Item one
-1.  Item two
-1.  Item three
-1.  Item four
-
-### And a nested list:
-
-- level 1 item
-  - level 2 item
-  - level 2 item
-    - level 3 item
-    - level 3 item
-- level 1 item
-  - level 2 item
-  - level 2 item
-  - level 2 item
-- level 1 item
-  - level 2 item
-  - level 2 item
-- level 1 item
-
-### Small image
-
-![](https://assets-cdn.github.com/images/icons/emoji/octocat.png)
-
-### Large image
-
-![](https://guides.github.com/activities/hello-world/branching.png)
-
-
-### Definition lists can be used with HTML syntax.
-
-<dl>
-<dt>Name</dt>
-<dd>Godzilla</dd>
-<dt>Born</dt>
-<dd>1952</dd>
-<dt>Birthplace</dt>
-<dd>Japan</dd>
-<dt>Color</dt>
-<dd>Green</dd>
-</dl>
-
-```
-Long, single-line code blocks should not wrap. They should horizontally scroll if they are too long. This line should be long enough to demonstrate this.
-```
-
-```
-The final element.
-```
+We look forward to continuing this project. See you in a few weeks!
