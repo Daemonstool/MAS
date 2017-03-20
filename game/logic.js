@@ -1116,12 +1116,13 @@ module.exports = function(io, EK) {
                         //Check if the other player has any cards
                         //Tough luck if a player gets this D:
                         //This can happen if the favor goes through even with nopes and the person has no card
-                        if (otherPlayer && otherPlayer.hand.length < 1) {
+                        if (otherPlayer && otherPlayer.hand.length < 1) 
+                        {
                             socket.emit($.GAME.PLAYER.PLAY, {
                                 error: 'User has no cards in their hand!'
                             });                     
                         
-                        playedSet.effectPlayed = true;
+                            playedSet.effectPlayed = true;
                         
                         } else {
                             //Ask other player for favor
@@ -1193,13 +1194,14 @@ module.exports = function(io, EK) {
                     break;
 
                 case $.CARD.GIVETOLEFT:
-                    
                     // Get a index from each alive player that passes a card to the next player.
                     var playerIdxToLeft = [];
 
                     // The random cards on the same index.
                     var randomCards = [];
                     alivePlayer = game.getPlayer(user); // current player.
+                    var nextIdx = game.cUserIndex;
+                    //playedSet.effectPlayed = false;
 
                     for (var i = 0; i < game.playerAliveCount(); ) {
                         // check if players have a card (.hand.length)
@@ -1213,37 +1215,41 @@ module.exports = function(io, EK) {
                                 while (card.id == randomCards[j].id)
                                     randCard = alivePlayer.getRandomCard();
 
-                            console.log((game.cUserIndex + i) % game.playerAliveCount());   
-                            console.log("gives");
-                            console.log(randCard);
+                            console.log(nextIdx, " gives ", randCard);
                             // remove the card.
                             alivePlayer.removeCard(randCard);
                             
                             // keep track of the card.
                             randomCards.push(randCard);
                             // keep track of the index.
-                            playerIdxToLeft.push((game.cUserIndex + i) % game.playerAliveCount());    
+                            playerIdxToLeft.push(nextIdx);    
 
                             // duh.
-                            alivePlayer = game.playerFromIndex((game.cUserIndex + ++i) % game.playerAliveCount());
+                            nextIdx = game.getNextAliveIndex(nextIdx);
+                            alivePlayer = game.playerFromIndex(nextIdx);
                             
                             // add it to the next player
                             alivePlayer.addCard(randCard);
 
-                            console.log("to");
-                            console.log((game.cUserIndex + i) % game.playerAliveCount());   
+                            console.log(" to", nextIdx);   
                             //don't increment the aliveplayer again but continue in the loop:
                             continue;
                         } 
-                        console.log((game.cUserIndex + i) % game.playerAliveCount());   
-                        console.log("gives nothing to ");
+                        console.log(nextIdx, " gives nothing to ");
                         // increment aliveplayer
-                        alivePlayer = game.playerFromIndex((game.cUserIndex + ++i) % game.playerAliveCount());
-                        console.log((game.cUserIndex + i) % game.playerAliveCount());   
+                        nextIdx = game.getNextAliveIndex(nextIdx);
+                        alivePlayer = game.playerFromIndex(nextIdx);
+                        console.log(nextIdx);   
                     }
 
-                    //TODO: refresh all the players their hands.
-
+                    
+                    //playedSet.effectPlayed = true;
+                    
+                    //Send data to everyone
+                    io.emit($.GAME.UPDATE, {
+                        game: game.sanitize()
+                    });
+                    
                     //Ask other player to see one card
                     io.in(game.id).emit($.GAME.PLAYER.GIVETOLEFT, {
                         currentIdx: game.cUserIndex,
