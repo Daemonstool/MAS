@@ -2,7 +2,7 @@
 layout: default
 ---
 
-This project is made for the course Multi-Agent Systems given at the University of Groningen. Any questions regarding this project should be directed to maathuishenry@gmail.com or alternatively a GitHub issue can be made. 
+This project is done for the course Multi-Agent Systems given at the University of Groningen. Any questions regarding this project should be directed to r.van.dijk.16@student.rug.nl, h.maathuis@student.rug.nl and j.doornkamp@student.rug.nl. It is also possible to construct a GitHub issue.
 
 [Link to another page](another-page).
 
