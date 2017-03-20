@@ -1,8 +1,4 @@
-# Dependency directory
-node_modules
-
-# Source maps
-*.js.map
-
-# Files marked with gitigx
-*gitigx*
+_site
+.sass-cache
+Gemfile.lock
+*.gem
