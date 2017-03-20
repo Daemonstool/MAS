@@ -29,6 +29,7 @@
   <body>
   	<div class="container-fluid">
         <div id="login" class="room">
+			
             <div class="center text-center" id="loginInput">
                 <div class="center">
                     <div id="title">EXPLODING KETCHUP</div>
@@ -114,6 +115,50 @@
                     </div>
                     <div class="buttonGroup">
                         <button id="blindStealButton" class="btn btn-success" type="button">Take</button>
+                        <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
+                    </div>
+                </div>
+                <div id="seeOneSelectPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                See a card from a player.
+                            </div>
+                            <div class="form-group">
+                                <label for="player-select">Select player:</label>
+                                <select class="form-control" id="player-select">
+                                    <option value="1">1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="seeOneButton" class="btn btn-success" type="button">See</button>
+                        <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
+                    </div>
+                </div>
+                <div id="seeThreeSelectPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                See atmost 3 cards from a player.
+                            </div>
+                            <div class="form-group">
+                                <label for="player-select">Select player:</label>
+                                <select class="form-control" id="player-select">
+                                    <option value="1">1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="seeThreeButton" class="btn btn-success" type="button">See atmost 3</button>
                         <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
                     </div>
                 </div>

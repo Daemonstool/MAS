@@ -37,13 +37,44 @@ module.exports = function(io, EK) {
          * Disconnect from the server
          * @param {Object} data The data
          */
+		socket.on('connection', function(data) {
+			
+			//Join the lobby
+            socket.join($.LOBBY.ROOM);
+
+            //Create user
+            var user = new User(socket.id, "Admin");
+            console.log('User Connecting: ' + user.id + ' ' + "Admin");
+
+            //Tell everyone user has connected
+            user.currentRoom = $.LOBBY.ROOM;
+            socket.broadcast.emit($.USER.CONNECT, {
+                user: user
+            });
+
+            //Get the game list data
+            var gameList = [];
+            for (var key in EK.gameList) {
+                var game = EK.gameList[key];
+                gameList.push(game.sanitize());
+            }
+
+            //Add the user and send them the data
+            EK.addUser(user);
+            socket.emit($.LOBBY.CONNECT, {
+                success: 'Successfully connected',
+                user: user,
+                connectedUsers: EK.connectedUsers,
+                gameList: gameList
+            });
+		});
+	
         socket.on('disconnect', function(data) {
-            
             if (socket.id in EK.connectedUsers) {
                 //Get the user id and fetch their details
+				
                 var user = EK.connectedUsers[socket.id];
                 if (!user) return;
-
                 //Tell everyone the user disconnected
                 io.emit($.USER.DISCONNECT, {
                     user: user
@@ -677,6 +708,7 @@ module.exports = function(io, EK) {
                         }
                     } else {
                         var card = playedSet.cards[0];
+                        // console.log(card.type) "See one card" for SeeOne (as defined in constants.js)
                         switch (card.type) {    
                             case $.CARD.FAVOR:
                                 //Only favor if we have someone to get a favor from
@@ -699,6 +731,30 @@ module.exports = function(io, EK) {
                                 }
                                 
                                 break;
+                            case $.CARD.SEETHREE:
+                            case $.CARD.SEEONE:
+                                //Only see card if we have someone to get a see card from
+                                
+                                if (!otherPlayerExists(data)) {
+                                    socket.emit($.GAME.PLAYER.PLAY, {
+                                        error: 'Invalid user selected'
+                                    });
+                                    return;
+                                }
+                                
+                                var other = EK.connectedUsers[data.to];
+                                var otherPlayer = game.getPlayer(other);
+                                
+                                //Check if the other player has any cards
+                                if (otherPlayer && otherPlayer.hand.length < 1) {
+                                    socket.emit($.GAME.PLAYER.PLAY, {
+                                        error: 'User has no cards in their hand!'
+                                    });
+                                    return;
+                                }
+                                
+                                break;
+
                         }
                     }
                     
@@ -750,10 +806,32 @@ module.exports = function(io, EK) {
                         
                         //Play the nope and set the pending set data
                         var card = player.removeCardType($.CARD.NOPE);
+						
+						var cards2 = EK.pendingSets[data.setId].set.cards;
+						var cardset = "" 
+						for (var k in cards2)
+						{
+							console.log(EK.pendingSets[data.setId].set.cards[k].name);
+							cardset = cardset + EK.pendingSets[data.setId].set.cards[k].name + " ";
+						}
+						
+						cardset = cardset + EK.pendingSets[data.setId].set.nopeAmount;
+						
+						var arrayLength = EK.connectedUsers.length;
+						for (var k in EK.connectedUsers) {
+							
+							if (EK.connectedUsers[k].name == "Admin")
+							{
+								io.to(EK.connectedUsers[k].id).emit('message', "NP" + " " + player.user.name + " " + cardset);
+								console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
+							}
+							//Do something
+						}
                         var cardSet = new CardSet(player, [card]);
                         cardSet.effectPlayed = true;
                         game.discardPile.push(cardSet);
                         
+						
                         //Set the nope played and amount
                         EK.pendingSets[data.setId].set.nopePlayed = true;
                         EK.pendingSets[data.setId].set.nopeAmount += 1;
@@ -813,13 +891,25 @@ module.exports = function(io, EK) {
                     });
                     return;
                 }
+				
+				var arrayLength = EK.connectedUsers.length;
+				for (var k in EK.connectedUsers) {
+					
+					if (EK.connectedUsers[k].name == "Admin")
+					{
+						io.to(EK.connectedUsers[k].id).emit('message', "FV" + " " + player.user.name);
+						console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
+					}
+					//Do something
+				}
                 
                 //Check if the other person is currently the one doing their turn
                 var other = EK.connectedUsers[data.to];
                 var otherPlayer = game.getPlayer(other);
-                
+				
                 if (otherPlayer === game.playerForCurrentIndex()) {
-                    
+					
+					
                     //Check if the favor is still possible
                     if (!effectsPlayed(game, otherPlayer)) {
                         
@@ -828,6 +918,16 @@ module.exports = function(io, EK) {
                         if (!EK.pendingSets[lastSet.id]) {
                             //Remove the card from player and give it to other player
                             var card = player.removeCardWithId(data.card);
+                            var arrayLength = EK.connectedUsers.length;
+    						for (var k in EK.connectedUsers) {
+    							
+    							if (EK.connectedUsers[k].name == "Admin")
+    							{
+    								io.to(EK.connectedUsers[k].id).emit('message', "FV" + " " + player.user.name + " " + otherPlayer.user.name + " "  + card.name);
+    								console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
+    							}
+    							//Do something
+    						}
                             otherPlayer.addCard(card);
 
                             //Set the effect play
@@ -851,6 +951,70 @@ module.exports = function(io, EK) {
                 });
             }
         });
+
+        /*Deze methode is voor de andere speler om de kaart te selecteren die naar degene gaat die de favor speelt.
+
+        /*socket.on($.GAME.PLAYER.SEEONE, function(data){
+            //Get the game and check if it exists
+            var game = EK.gameList[data.gameId];
+
+            if (game && game.status == $.GAME.STATUS.PLAYING) {
+                var user = EK.connectedUsers[socket.id];
+                var player = game.getPlayer(user);
+                
+                //Check if we have right player
+                if (!data.hasOwnProperty('to') || !EK.connectedUsers[data.to] || !game.getPlayer(EK.connectedUsers[data.to])) {
+                    socket.emit($.GAME.PLAYER.SEEONE, {
+                        error: 'Invalid player'
+                    });
+                    return;
+                }
+                
+                //Check if current user has card
+                if (!data.hasOwnProperty('card') || !game.getPlayer(user).hasCardWithId(data.card)) {
+                    socket.emit($.GAME.PLAYER.SEEONE, {
+                        error: 'Invalid card'
+                    });
+                    return;
+                }
+                
+                //Check if the other person is currently the one doing their turn
+                var other = EK.connectedUsers[data.to];
+                var otherPlayer = game.getPlayer(other);
+                
+                if (otherPlayer === game.playerForCurrentIndex()) {
+                    
+                    //Check if the favor is still possible
+                    if (!effectsPlayed(game, otherPlayer)) {
+                        
+                        //Make sure the last set is still not pending
+                        var lastSet = game.getLastDiscardSet();
+                        if (!EK.pendingSets[lastSet.id]) {
+                            //Select random card from player and notify it to the other player.
+                            var card = player.getRandomCard();
+                            
+                            //Set the effect play
+                            game.getLastDiscardSet().effectPlayed = true;
+
+                            //Notify players of the see one
+                            io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
+                                to: other,
+                                from: user,
+                                card: card
+                            });
+                            return;
+                        }
+                    }
+                }
+                
+                //If we hit here then see one did not go through
+                socket.emit($.GAME.PLAYER.SEEONE, {
+                    error: 'Something went wrong'
+                });
+            }
+        });*/
+
+
     });
     
     //************ Socket methods ************//
@@ -899,6 +1063,25 @@ module.exports = function(io, EK) {
                             var card = otherPlayer.getRandomCard();
                             otherPlayer.removeCard(card);
                             player.addCard(card);
+							
+							var cards2 = playedSet.cards;
+							var cardset = "" 
+							for (var k in cards2)
+							{
+								console.log(playedSet.cards[k].name);
+								cardset = cardset + playedSet.cards[k].name + " ";
+							}
+							
+							var arrayLength = EK.connectedUsers.length;
+							for (var k in EK.connectedUsers) {
+								
+								if (EK.connectedUsers[k].name == "Admin")
+								{
+									io.to(EK.connectedUsers[k].id).emit('message', "BS" + " " + player.user.name + " " + otherPlayer.user.name + " " + cardset + card.name);
+									console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
+								}
+								//Do something
+							}
 
                             //Tell players that a steal occurred
                             io.in(game.id).emit($.GAME.PLAYER.STEAL, {
@@ -924,6 +1107,24 @@ module.exports = function(io, EK) {
                         var card = otherPlayer.removeCardType(type);
                         if (card) {
                             player.addCard(card);
+							
+							var cards2 = playedSet.cards;
+							var cardset = "" 
+							for (var k in cards2)
+							{
+								console.log(playedSet.cards[k].name);
+								cardset = cardset + playedSet.cards[k].name + " ";
+							}
+							
+							var arrayLength = EK.connectedUsers.length;
+							for (var k in EK.connectedUsers) {
+								
+								if (EK.connectedUsers[k].name == "Admin")
+								{
+									io.to(EK.connectedUsers[k].id).emit('message', "NS" + " " + player.user.name + " " + otherPlayer.user.name + " " + cardset + card.name);
+									console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
+								}
+							}
 
                             //Tell players that a steal occurred
                             io.in(game.id).emit($.GAME.PLAYER.STEAL, {
@@ -936,6 +1137,26 @@ module.exports = function(io, EK) {
                             });
                         } else {
                             //Tell players that stealing was unsuccessful
+							
+							var cards2 = playedSet.cards;
+							var cardset = "" 
+							for (var k in cards2)
+							{
+								console.log(playedSet.cards[k].name);
+								cardset = cardset + playedSet.cards[k].name + " ";
+							}
+							
+							var arrayLength = EK.connectedUsers.length;
+							for (var k in EK.connectedUsers) {
+								
+								if (EK.connectedUsers[k].name == "Admin")
+								{
+									io.to(EK.connectedUsers[k].id).emit('message', "BS" + " " + player.user.name + " " + otherPlayer.user.name + " " + cardset + "FAILED");
+									console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
+								}
+								//Do something
+							}
+							
                             io.in(game.id).emit($.GAME.PLAYER.STEAL, {
                                 success: false,
                                 to: other.id,
@@ -969,6 +1190,24 @@ module.exports = function(io, EK) {
                     //If card existed then give it to the user
                     if (card) {
                         player.addCard(card);
+						
+						var cards2 = playedSet.cards;
+						var cardset = "" 
+						for (var k in cards2)
+						{
+							console.log(playedSet.cards[k].name);
+							cardset = cardset + playedSet.cards[k].name + " ";
+						}
+						
+						var arrayLength = EK.connectedUsers.length;
+						for (var k in EK.connectedUsers) {
+							
+							if (EK.connectedUsers[k].name == "Admin")
+							{
+								io.to(EK.connectedUsers[k].id).emit('message', "DS" + " " + player.user.name + " " + otherPlayer.user.name + " " + cardset + card.name);
+								console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
+							}
+						}
 
                         //Notify players of the steal
                         io.in(game.id).emit($.GAME.PLAYER.STEAL, {
@@ -1010,6 +1249,15 @@ module.exports = function(io, EK) {
                     //Set the draw amount to 0 so that we just end our turn without drawing anything
                     player.drawAmount = 0;
                     nextPlayer.drawAmount = 2;
+					
+					var arrayLength = EK.connectedUsers.length;
+					for (var k in EK.connectedUsers) {
+						
+						if (EK.connectedUsers[k].name == "Admin")
+						{
+							io.to(EK.connectedUsers[k].id).emit('message', "ATT" + " " + player.user.name + " " + nextPlayer.user.name);
+						}
+					}
 
                     //Force player to end turn
                     endTurn = true;
@@ -1043,16 +1291,133 @@ module.exports = function(io, EK) {
                     }
 
                     break;
-                case $.CARD.FUTURE:
 
+                case $.CARD.SEEONE:
+                    if (otherPlayerExists(data)) {
+                        var other = EK.connectedUsers[data.to];
+                        var otherPlayer = game.getPlayer(other);
+
+                        //Set the see one to false
+                        //playedSet.effectPlayed = false;
+
+                        //Check if the other player has any cards
+                        //Tough luck if a player gets this D:
+                        //This can happen if the favor goes through even with nopes and the person has no card
+                        if (otherPlayer && otherPlayer.hand.length < 1) {
+                            
+							var arrayLength = EK.connectedUsers.length;
+							for (var k in EK.connectedUsers) {
+								
+								if (EK.connectedUsers[k].name == "Admin")
+								{
+									io.to(EK.connectedUsers[k].id).emit('message', "S1" + " " + player.user.name + " " + otherPlayer.user.name + " " + "FAILED");
+								}
+								//Do something
+							}
+							
+                            socket.emit($.GAME.PLAYER.PLAY, {
+                                error: 'User has no cards in their hand!'
+                            });                     
+                            //playedSet.effectPlayed = true;
+                        } else {
+							
+							var card2 = otherPlayer.getRandomCard();
+
+							var arrayLength = EK.connectedUsers.length;
+							for (var k in EK.connectedUsers) {
+								
+								if (EK.connectedUsers[k].name == "Admin")
+								{
+									io.to(EK.connectedUsers[k].id).emit('message', "S1" + " " + player.user.name + " " + otherPlayer.user.name + " " + card2.name);
+								}
+								//Do something
+							}
+                            //Ask other player to see one card
+                            io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
+                                to: other.id,
+                                from: socket.id,
+                                card: card2,
+                            });
+                        }
+                    }
+                    break;
+
+                case $.CARD.SEETHREE:
+                    if (otherPlayerExists(data)) {
+                        var other = EK.connectedUsers[data.to];
+                        var otherPlayer = game.getPlayer(other);
+
+                        //Check if the other player has any cards
+                        //Tough luck if a player gets this D:
+                        //This can happen if the favor goes through even with nopes and the person has no card
+                        if (otherPlayer && otherPlayer.hand.length < 1) {
+                            
+							var arrayLength = EK.connectedUsers.length;
+							for (var k in EK.connectedUsers) {
+								
+								if (EK.connectedUsers[k].name == "Admin")
+								{
+									io.to(EK.connectedUsers[k].id).emit('message', "S3" + " " + player.user.name + " " + otherPlayer.user.name + " " + "FAILED");
+								}
+								//Do something
+							}
+							
+                            socket.emit($.GAME.PLAYER.PLAY, {
+                                error: 'User has no cards in their hand!'
+                            });
+
+                        } else {
+                            // null, or an array ranging from 0 to 2. 
+                            var cardArray = otherPlayer.getThreeRandomCards();
+							
+							var arrayLength = EK.connectedUsers.length;
+							
+							var cardnames = "";
+							
+							for (var i = 0; i < cardArray.length; i++) 
+							{
+								cardnames = cardnames + cardArray[i].name + " ";
+							}
+							
+							for (var k in EK.connectedUsers) {
+								
+								if (EK.connectedUsers[k].name == "Admin")
+								{
+									io.to(EK.connectedUsers[k].id).emit('message', "S3" + " " + player.user.name + " " + otherPlayer.user.name + " " + cardnames);
+								}
+								//Do something
+							}
+
+                            //Ask other player to see one card
+                            io.in(game.id).emit($.GAME.PLAYER.SEETHREE, {
+                                to: other.id,
+                                from: socket.id,
+                                cards: cardArray,
+                            });
+                        }
+                    }
+                    break;
+
+                case $.CARD.FUTURE:
                     //Get the first 3 cards on the top of the draw pile
                     var futureCards = [];
+					var futures = ""
                     for (var i = 0; i < 3; i++)
                     {
                         if (game.drawPile[i]) {
                             futureCards.push(game.drawPile[i]);
+							futures = futures + game.drawPile[i].name + " ";
                         }
                     }
+					
+					var arrayLength = EK.connectedUsers.length;
+					for (var k in EK.connectedUsers) {
+						
+						if (EK.connectedUsers[k].name == "Admin")
+						{
+							io.to(EK.connectedUsers[k].id).emit('message', "STF" + " " + player.user.name + " " + futures);
+						}
+					}
 
                     //Send the cards to the player
                     socket.emit($.GAME.PLAYER.FUTURE, {
@@ -1069,12 +1434,30 @@ module.exports = function(io, EK) {
                     if (player.drawAmount < 1) {
                         endTurn = true;
                     }
+					
+					var arrayLength = EK.connectedUsers.length;
+					for (var k in EK.connectedUsers) {
+						
+						if (EK.connectedUsers[k].name == "Admin")
+						{
+							io.to(EK.connectedUsers[k].id).emit('message', "SK" + " " + player.user.name);
+						}
+					}
                     
                     break;
 
                 case $.CARD.SHUFFLE:
                     //Shuffle the deck
                     game.shuffleDeck();
+
+					var arrayLength = EK.connectedUsers.length;
+					for (var k in EK.connectedUsers) {
+						
+						if (EK.connectedUsers[k].name == "Admin")
+						{
+							io.to(EK.connectedUsers[k].id).emit('message', "SH" + " " + player.user.name);
+						}
+					}
                     break;
                 case $.CARD.REVERSE:
                     //Switch direction

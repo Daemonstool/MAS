@@ -443,6 +443,22 @@ var GameRoom = {
         $('#favorSelectPopup').show();
         $('#playingInput button').addClass('disabled');
     },
+
+    showSeeOneSelectOverlay: function(EK) {
+        this.updateGameOverlay(EK);
+        $('#overlay').show();
+        $('#overlay .popup').hide();
+        $('#seeOneSelectPopup').show();
+        $('#playingInput button').addClass('disabled');
+    },
+
+    showSeeThreeSelectOverlay: function(EK) {
+        this.updateGameOverlay(EK);
+        $('#overlay').show();
+        $('#overlay .popup').hide();
+        $('#seeThreeSelectPopup').show();
+        $('#playingInput button').addClass('disabled');
+    },
     
     showDiscardPileOverlay: function() {
         $('#overlay').show();

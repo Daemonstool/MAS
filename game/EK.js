@@ -27,6 +27,8 @@ var EK = function(io) {
     //List of all the current users
     this.connectedUsers = {};
     
+    this.connectedSpectators = {};
+    
     //List of all the current games
     this.gameList = {};
     
@@ -64,12 +66,33 @@ EK.prototype.addUser = function(user) {
 }
 
 /**
+ * Add a spectator to the spectator users
+ * @param {Object} user The spectator
+ */
+EK.prototype.addSpectatorUser = function(user) {
+    if (!(user.id in this.connectedSpectators)) {
+        this.connectedSpectators[user.id] = user;
+    }
+}
+
+
+/**
  * Remove a user from connected users
  * @param {Object} user The user
  */
 EK.prototype.removeUser = function(user) {
     if (user.id in this.connectedUsers) {
         delete this.connectedUsers[user.id];
+    }
+}
+
+/**
+ * Remove a spectator from spectator users
+ * @param {Object} user The spectator
+ */
+EK.prototype.removeUser = function(user) {
+    if (user.id in this.connectedSpectators) {
+        delete this.connectedSpectators[user.id];
     }
 }
 
