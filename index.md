@@ -4,8 +4,6 @@ layout: default
 
 This project is done for the course Multi-Agent Systems given at the University of Groningen. Any questions regarding this project should be directed to r.van.dijk.16@student.rug.nl, h.maathuis@student.rug.nl and j.doornkamp@student.rug.nl. It is also possible to construct a GitHub issue.
 
-[Link to another page](another-page).
-
 # [](#header-1)Introduction
 Welcome to the work-in-progress report and access point for our "Exploding Kittens"-related project. There will not be a lot of report as of now, as the project is not finished, but we will provide enough information for you to be able to view our progress.
 
