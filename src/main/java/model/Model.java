@@ -1,5 +1,6 @@
 package model;
 
+import java.awt.GridLayout;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
@@ -8,6 +9,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Scanner;
+
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -26,18 +32,46 @@ public class Model extends MultiGraph {
 	private int worldCount;
 
 	private ArrayList<String> messages = new ArrayList<>();
+
 	public Model() {
 		super("Arbitrary String #1");
 		this.worldCount = 0;
 
 		Socket socket;
 		try {
-			socket = IO.socket("http://localhost:3000");
+
+			JTextField field1 = new JTextField("");
+			JTextField field2 = new JTextField("");
+			JPanel panel = new JPanel(new GridLayout(0, 1));
+			panel.add(new JLabel("IP (default localhost):"));
+			panel.add(field1);
+			panel.add(new JLabel("port (default 3000):"));
+			panel.add(field2);
+
+			String ip = "localhost";
+			String port = "3000";
+
+			String[] buttons = { "Connect", "Exit" };
+
+			int result = JOptionPane.showOptionDialog(null, panel, "Connect to game", JOptionPane.WARNING_MESSAGE, 0,
+					null, buttons, buttons[0]);
+
+			System.out.println(result);
+
+			if (result == 0) {
+				ip = (field1.getText().isEmpty()) ? "localhost" : field1.getText();
+				port = (field2.getText().isEmpty()) ? "3000" : field2.getText();
+			} else if (result == 1) {
+				System.exit(0);
+			}
+
+			socket = IO.socket("http://" + ip + ":" + port);
 			socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
 				@Override
 				public void call(Object... args) {
 					socket.emit("connection", "hi");
+					System.out.println("Connected");
 				}
 
 			}).on("message", new Emitter.Listener() {
@@ -108,7 +142,6 @@ public class Model extends MultiGraph {
 		System.out.println();
 
 		display();
-		
 	}
 	
 	private String getWorldName(){
