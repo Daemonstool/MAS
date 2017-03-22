@@ -56,8 +56,6 @@ public class Model extends MultiGraph {
 			int result = JOptionPane.showOptionDialog(null, panel, "Connect to game", JOptionPane.WARNING_MESSAGE, 0,
 					null, buttons, buttons[0]);
 
-			System.out.println(result);
-
 			if (result == 0) {
 				ip = (field1.getText().isEmpty()) ? "localhost" : field1.getText();
 				port = (field2.getText().isEmpty()) ? "3000" : field2.getText();
@@ -120,18 +118,12 @@ public class Model extends MultiGraph {
 			n.setAttribute("ui.label", n.getAttribute("atoms").toString());
 		}
 
-		addEdge("w1w2", "w1", "w2");
-		addEdge("w1w1", "w1", "w1");
-		addEdge("w1w3", "w1", "w3");
-		addEdge("w3w1", "w3", "w1");
-		addEdge("w2w3", "w2", "w3");
-		addAgent("w1w2", "Henk");
-		addAgent("w1w2", "Joost");
-		addAgent("w2w3", "Henry");
-
-		addAgent("w1w3", "Up");
-		addAgent("w3w1", "Down");
-		addAgent("w1w1", "Henk");
+		addRelation("w1", "w2", "Henk");//declare relation with one initial agent
+		addRelation("w1", "w1", "Henk");
+		addRelation("w1", "w3", "Up");
+		addRelation("w3", "w1", "Down");
+		addRelation("w2", "w3", "Henry");
+		addRelation("w1", "w2", "Joost");
 
 		System.out.println(new Atom("p").evaluate(getNode("w1")));
 		System.out.println(new Atom("p").evaluate(getNode("w2")));
@@ -165,11 +157,15 @@ public class Model extends MultiGraph {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Edge addEdge(String id, String idFrom, String idTo) {
+	public Edge addEdge(String agent, String idFrom, String idTo) {
+		//Adds an edge between two world, with at least one agent
+		//DIRECT USE NOT RECOMMENDED
+		//This method assumes the edge doesn't already exist, you'll have to check this before
+		//Using addRelation() does this for you.
+		//(but we could not make this method private as it is inherited)
 		Edge e = super.addEdge(idFrom + idTo, idFrom, idTo, true);
 		if (getEdge(idTo + idFrom) != null) {
 			// symmetric relation, do some styling
-			System.out.println(e.getId());
 			e.setAttribute("ui.class", "symmetric");// tag only applies to one
 													// side to separate the
 													// labels
@@ -178,14 +174,38 @@ public class Model extends MultiGraph {
 			// reflexive relation, tag it
 			e.setAttribute("ui.class", "reflexive");
 		}
-		e.setAttribute("agents", new ArrayList<String>());
+		ArrayList<String> agents = new ArrayList<String>();
+		agents.add(agent);
+		e.setAttribute("agents", agents);
 		return e;
 	}
 
-	public void addAgent(String edge, String agent) {
-		Edge e = getEdge(edge);
-		ArrayList<String> agents = e.getAttribute("agents");
-		agents.add(agent);
+	public void addRelation(String idFrom, String idTo, String agent) {
+		//adds a relation for an agent between two worlds
+		Edge e = getEdge(idFrom+idTo);
+		if(e == null){
+			//need to add the edge
+			e = addEdge(agent,idFrom,idTo);
+		}else{
+			ArrayList<String> agents = e.getAttribute("agents");
+			agents.add(agent);
+		}
+	}
+	
+	public void removeRelation(String idFrom, String idTo, String agent){
+		//remove a relation for an agent between two world
+		Edge e = getEdge(idFrom+idTo);
+		if(e != null){
+			ArrayList<String> agents = e.getAttribute("agents");
+			if(agents.contains(agent)){
+				agents.remove(agent);
+				if(agents.isEmpty()){
+					removeEdge(idFrom+idTo);
+				}
+				return;
+			}
+		}
+		System.err.println("Tried to remove agent " + agent + "on relation " + idFrom + "->" + idTo + "while that relation wasn't there!");
 	}
 
 	public ArrayList<String> getAtoms(String node) {
