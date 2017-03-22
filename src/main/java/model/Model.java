@@ -40,30 +40,24 @@ public class Model extends MultiGraph {
 		Socket socket;
 		try {
 
-			JTextField field1 = new JTextField("");
-			JTextField field2 = new JTextField("");
 			JPanel panel = new JPanel(new GridLayout(0, 1));
-			panel.add(new JLabel("IP (default localhost):"));
-			panel.add(field1);
-			panel.add(new JLabel("port (default 3000):"));
-			panel.add(field2);
+			panel.add(new JLabel("You can play the game without hosting at: https://mas-ek.herokuapp.com/"));
+			panel.add(new JLabel("When hosting yourself, make sure to use port 3000 on localhost."));
 
-			String ip = "localhost";
-			String port = "3000";
-
-			String[] buttons = { "Connect", "Exit" };
+			String[] buttons = { "Connect to Heroku Server", "Connect Localhost (localhost:3000)", "Exit" };
 
 			int result = JOptionPane.showOptionDialog(null, panel, "Connect to game", JOptionPane.WARNING_MESSAGE, 0,
 					null, buttons, buttons[0]);
 
 			if (result == 0) {
-				ip = (field1.getText().isEmpty()) ? "localhost" : field1.getText();
-				port = (field2.getText().isEmpty()) ? "3000" : field2.getText();
+				socket = IO.socket("https://mas-ek.herokuapp.com/");
 			} else if (result == 1) {
+				socket = IO.socket("http://localhost:3000");
+			} else {
+				socket = IO.socket("https://mas-ek.herokuapp.com/");
 				System.exit(0);
 			}
 
-			socket = IO.socket("http://" + ip + ":" + port);
 			socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
 				@Override
