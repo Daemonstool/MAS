@@ -503,6 +503,16 @@ module.exports = function(io, EK) {
                         //Make player draw a card and if it is an explode then remove a defuse
                         //If player has no defuse then player is out
                         var drawn = game.drawCards(player, 1);
+						
+						var arrayLength = EK.connectedUsers.length;
+						for (var k in EK.connectedUsers) {
+							
+							if (EK.connectedUsers[k].name == "Admin")
+							{
+								io.to(EK.connectedUsers[k].id).emit('message', "DRAW" + " " + player.user.name + " " + drawn[0].name);
+							}
+							//Do something
+						}
                         socket.emit($.GAME.PLAYER.DRAW, {
                             game: game.sanitize(),
                             cards: drawn,
