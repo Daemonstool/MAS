@@ -21,6 +21,9 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.view.Viewer;
+import org.graphstream.ui.view.ViewerListener;
+import org.graphstream.ui.view.ViewerPipe;
+import org.graphstream.util.VerboseSink;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -29,9 +32,11 @@ import logic.Atom;
 import logic.Formula;
 import logic.Knows;
 
-public class Model extends MultiGraph {
+public class Model extends MultiGraph implements ViewerListener {
 	
 	private int worldCount;
+	
+	private ArrayList<String> clickedWorlds = new ArrayList<>();
 
 	private ArrayList<String> messages = new ArrayList<>();
 
@@ -129,7 +134,18 @@ public class Model extends MultiGraph {
 
 		System.out.println();
 
+		
 		display();
+		
+		ViewerPipe viewPipe = display().newViewerPipe();
+		viewPipe.addViewerListener(this);
+        viewPipe.addSink(new VerboseSink());
+        viewPipe.pump();
+            	
+		
+        while (true) {
+            viewPipe.pump();
+        }
 	}
 	
 	private String getWorldName(){
@@ -258,6 +274,7 @@ public class Model extends MultiGraph {
 		addAttribute("ui.stylesheet", stylesheet);
 
 		Iterator<Node> nodes = getNodeIterator();
+	
 		while (nodes.hasNext()) {
 			Node n = nodes.next();
 			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
@@ -265,9 +282,9 @@ public class Model extends MultiGraph {
 		Iterator<Edge> edges = getEdgeIterator();
 		while (edges.hasNext()) {
 			Edge e = edges.next();
-			e.setAttribute("ui.label", e.getAttribute("agents").toString());
+			e.setAttribute("ui.label", "");	
 		}
-
+		
 		return super.display();
 	}
 	
@@ -324,5 +341,44 @@ public class Model extends MultiGraph {
 
 	public static void main(String[] args) {
 		new Model();
+	}
+
+	@Override
+	public void viewClosed(String viewName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void buttonPushed(String id) {
+		// TODO Auto-generated method stub
+		
+		Iterator<Edge> it = getNode(id).getEachEdge().iterator();
+		
+		while (it.hasNext())
+		{
+			Edge e = it.next();
+			
+			if (e != null)
+			{
+				if (this.clickedWorlds.contains(e.getId()))
+				{
+					e.setAttribute("ui.label", e.getAttribute("agents").toString());
+				}
+				else
+				{
+					e.setAttribute("ui.label", "");
+				}
+				this.clickedWorlds.add(e.getId());
+			}
+		}
+		
+		
+	}
+
+	@Override
+	public void buttonReleased(String id) {
+		// TODO Auto-generated method stub
+		
 	}
 }
