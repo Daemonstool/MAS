@@ -849,6 +849,10 @@ jQuery(document).ready(function($) {
         }
     });
 
+    function mod(n, m) {
+            return ((n % m) + m) % m;
+    }
+    
     io.on($C.GAME.PLAYER.GIVETOLEFT, function(data) {
         if (data.hasOwnProperty('error'))   
             GameRoom.logError(data.error);
@@ -856,10 +860,65 @@ jQuery(document).ready(function($) {
         {
             //Removed cards associated with the playerIdx
             var cards = data.cards;
-            var playerIdx = data.playerIdx;
-            //Current player index (not necessary)?
-            var currentIdx = data.currentIdx;
+            var fromArray = data.fromArray;
+            var toArray = data.toArray;
+            var noCardToPlayers = data.noCardToPlayers;
+            var noCardFromPlayers = data.noCardFromPlayers;
+
+            var nAlive = data.nAlive;
+            var currentUser = main.getCurrentUser();
+            var game = main.getCurrentUserGame();
         
+
+            var found = false;
+            for (var i = 0; i < nAlive; i++)
+            {
+                var to = main.users[toArray[mod(i + 1, nAlive)]].name;
+                if (currentUser.id === toArray[i])
+                {
+                    GameRoom.logLocal(
+                        "You gave a " + cards[i].name + " to " + to + "."
+                    );
+                    found = true;
+                    break;
+                }
+
+            }
+            if (!found) 
+                for (var i = 0; i < noCardToPlayers.length; i++)
+                    if (currentUser.id === noCardToPlayers[i])
+                    {
+                        var to = main.users[noCardToPlayers[i]].name;
+                        GameRoom.logLocal("You gave nothing to " + to + ".");
+                        break;
+                    }
+
+            found = false;
+            for (var i = 0; i < nAlive; i++)
+            {
+                if (currentUser.id === fromArray[i])
+                {
+                    var from = main.users[fromArray[mod(i - 1, nAlive)]].name;
+                    GameRoom.logLocal(
+                        "You got a " + cards[i].name + " from " + from + "."
+                    );
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) 
+                for (var i = 0; i < noCardFromPlayers.length; i++)
+                    if (currentUser.id === noCardFromPlayers[i])
+                    {
+                        var from = main.users[noCardFromPlayers[i]].name;
+                        GameRoom.logLocal("You got nothing from " + from + ".");
+                        break;
+                    }
+
+            //update all hands:
+            io.emit($C.GAME.PLAYER.HAND, { gameId: game.id }); 
+            //Get the discard pile
+            io.emit($C.GAME.DISCARDPILE, { gameId: game.id });        
         }
 
 
