@@ -1,8 +1,11 @@
 package model;
 
 import java.awt.GridLayout;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +16,6 @@ import java.util.Scanner;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -147,6 +149,37 @@ public class Model extends MultiGraph {
 		Node n = getNode(node);
 		ArrayList<String> atoms = n.getAttribute("atoms");
 		atoms.add(atom);
+	}
+	
+	public void constructFromFile(String s)
+	{
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(s));
+			
+			String line;
+			while((line = in.readLine()) != null)
+			{
+			    System.out.println(line);
+			    String[] args = line.split(" ");
+			    if (args.length == 2)
+			    	addAtom(args[0], args[1]);
+			    else if (args.length == 4 && args[2].equals("B"))
+			    {
+			    	addRelation(args[0], args[1], args[3]);
+			    	addRelation(args[1], args[0], args[3]);
+			    }
+			    else if (args.length == 4 && args[2].equals("D"))
+			    	addRelation(args[0], args[1], args[3]);
+			}
+			in.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
