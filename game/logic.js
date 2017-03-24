@@ -388,7 +388,7 @@ module.exports = function(io, EK) {
                                 var tmpHandStr = ""; // append cards to this string.
                                 for (var tmpCard in game.getPlayer(EK.connectedUsers[i]).hand) // player = game.getPlayer(user), then get its hand.
                                   tmpHandStr = tmpHandStr + " " + game.getPlayer(EK.connectedUsers[i]).hand[tmpCard].name;
-                                io.to(EK.connectedUsers[k].id).emit('message', "INIT" + " " + EK.connectedUsers[i].name + tmpHandStr);
+                                io.to(EK.connectedUsers[k].id).emit('message', "INT" + " " + EK.connectedUsers[i].name + tmpHandStr);
                               }
                         // End INIT MESSAGE part.
                     } else {
@@ -531,7 +531,7 @@ module.exports = function(io, EK) {
 							
 							if (EK.connectedUsers[k].name == "Admin")
 							{
-								io.to(EK.connectedUsers[k].id).emit('message', "DRAW" + " " + player.user.name + " " + drawn[0].name);
+								io.to(EK.connectedUsers[k].id).emit('message', "DC" + " " + player.user.name + " " + drawn[0].name);
 							}
 							//Do something
 						}
@@ -550,6 +550,7 @@ module.exports = function(io, EK) {
 
                     //Use while loop incase player picks up 2 explodes
                     while (player.hasCardType($.CARD.EXPLODE)) {                    
+                        var arrayLength = EK.connectedUsers.length;
                         if (player.hasCardType($.CARD.DEFUSE)) {
                             //Remove deufse and add it to the discard pile
                             var defuse = player.removeCardType($.CARD.DEFUSE);
@@ -563,10 +564,29 @@ module.exports = function(io, EK) {
                             game.drawPile.splice(index, 0, explode);
                             
                             state = $.GAME.PLAYER.TURN.DEFUSED;
+                            for (var k in EK.connectedUsers) 
+                            {
+                                
+                                if (EK.connectedUsers[k].name == "Admin")
+                                {
+                                    io.to(EK.connectedUsers[k].id).emit('message', "DF" + " " + player.user.name + " " + drawn[0].name);
+                                }
+                                //Do something
+                            }
+
                         } else {
                             //Player exploded
                             state = $.GAME.PLAYER.TURN.EXPLODED;
                             game.explodePlayer(player);
+                            for (var k in EK.connectedUsers) 
+                            {
+                                
+                                if (EK.connectedUsers[k].name == "Admin")
+                                {
+                                    io.to(EK.connectedUsers[k].id).emit('message', "EK" + " " + player.user.name + " " + drawn[0].name);
+                                }
+                                //Do something
+                            }
                         }
                     }
 
