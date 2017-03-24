@@ -13,7 +13,6 @@ import java.util.Scanner;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -30,12 +29,16 @@ import logic.Knows;
 public class Model extends MultiGraph {
 	
 	private int worldCount;
+	private ArrayList<Formula> commonKnowledge;
+	private ArrayList<String> agents;
 
-	private ArrayList<String> messages = new ArrayList<>();
+	private ArrayList<String> messages = new ArrayList<String>();
 
 	public Model() {
 		super("Arbitrary String #1");
 		this.worldCount = 0;
+		this.commonKnowledge = new ArrayList<Formula>();
+		this.agents = new ArrayList<String>();
 
 		Socket socket;
 		try {
@@ -96,36 +99,34 @@ public class Model extends MultiGraph {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		addNode(getWorldName());
-		addNode(getWorldName());
-		addNode(getWorldName());
-
-		Iterator<Node> nodes = getNodeIterator();
-		Random r = new Random();
-		while (nodes.hasNext()) {
-			Node n = nodes.next();
-			if (r.nextBoolean())
-				addAtom(n.getId(), "p");
-			if (r.nextBoolean())
-				addAtom(n.getId(), "q");
-			n.setAttribute("ui.label", n.getAttribute("atoms").toString());
+		
+		for(int i=0;i<8;++i){
+			addNode(getWorldName());
 		}
+		
+		addAtom("w1","ek1");
+		addAtom("w1","ek2");
+		addAtom("w1","ek3");
+		addAtom("w2","ek1");
+		addAtom("w2","ek2");
+		addAtom("w3","ek1");
+		addAtom("w3","ek3");
+		addAtom("w4","ek2");
+		addAtom("w4","ek3");
+		addAtom("w5","ek1");
+		addAtom("w6","ek2");
+		addAtom("w7","ek3");
+		
+		this.agents.add("Henk");
+		this.agents.add("Joost");
 
-		addRelation("w1", "w2", "Henk");//declare relation with one initial agent
-		addRelation("w1", "w1", "Henk");
-		addRelation("w1", "w3", "Up");
-		addRelation("w3", "w1", "Down");
-		addRelation("w2", "w3", "Henry");
-		addRelation("w1", "w2", "Joost");
-
-		System.out.println(new Atom("p").evaluate(getNode("w1")));
-		System.out.println(new Atom("p").evaluate(getNode("w2")));
-		System.out.println(new Atom("p").evaluate(getNode("w3")));
-		Formula f = new Knows(new Atom("p"), "Henk");
-		System.out.println(f.evaluate(getNode("w1")));
-
-		System.out.println();
+		for(int w1=1;w1<=8;++w1){
+			for(int w2=1;w2<=8;++w2){
+				for(String a : agents){
+					addRelation("w"+w1,"w"+w2,a);
+				}
+			}
+		}
 
 		display();
 	}
@@ -287,6 +288,10 @@ public class Model extends MultiGraph {
 				
 				break;
 		}
+	}
+	
+	public ArrayList<Formula> getCommonKnowledge() {
+		return commonKnowledge;
 	}
 
 	public static void main(String[] args) {
