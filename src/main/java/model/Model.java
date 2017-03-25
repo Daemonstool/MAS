@@ -1,5 +1,6 @@
 package model;
 
+import java.awt.Color;
 import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,6 +39,7 @@ public class Model extends MultiGraph implements ViewerListener {
 	
 	private ArrayList<String> clickedWorlds = new ArrayList<>();
 
+	private ArrayList<Node> selectedNodes = new ArrayList<>();
 	private ArrayList<String> messages = new ArrayList<>();
 
 	public Model() {
@@ -277,6 +279,7 @@ public class Model extends MultiGraph implements ViewerListener {
 	
 		while (nodes.hasNext()) {
 			Node n = nodes.next();
+			n.addAttribute("ui.color", new Color(0, 0, 0));
 			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
 		}
 		Iterator<Edge> edges = getEdgeIterator();
@@ -355,24 +358,43 @@ public class Model extends MultiGraph implements ViewerListener {
 		
 		Iterator<Edge> it = getNode(id).getEachEdge().iterator();
 		
-		while (it.hasNext())
+		if (selectedNodes.contains(getNode(id)))
 		{
-			Edge e = it.next();
-			
-			if (e != null)
-			{
-				if (this.clickedWorlds.contains(e.getId()))
-				{
-					e.setAttribute("ui.label", e.getAttribute("agents").toString());
-				}
-				else
-				{
-					e.setAttribute("ui.label", "");
-				}
-				this.clickedWorlds.add(e.getId());
-			}
+			selectedNodes.remove(getNode(id));
+			getNode(id).removeAttribute("ui.color");
+			getNode(id).addAttribute("ui.color", new Color(0, 0, 0));
+		}
+		else
+		{
+			selectedNodes.add(getNode(id));
+			getNode(id).removeAttribute("ui.color");
+			getNode(id).addAttribute("ui.color", new Color(255, 0, 0));
 		}
 		
+		Iterator<Node> it3 = super.getNodeIterator();
+		Iterator<Node> it4 = super.getNodeIterator();
+		
+		while (it3.hasNext())
+		{
+			Node n3 = it3.next();
+			while (it4.hasNext())
+			{
+				Node n4 = it4.next();
+				if (n3 != null && n4 != null)
+				{
+					Edge e2 = getEdge(n3.getId() + n4.getId());
+					if (e2 != null && selectedNodes.contains(n3) && selectedNodes.contains(n4))
+					{
+						e2.setAttribute("ui.label", e2.getAttribute("agents").toString());
+					}
+					else if (e2 != null)
+					{
+						e2.setAttribute("ui.label", "");
+					}
+						
+				}
+			}
+		}
 		
 	}
 
