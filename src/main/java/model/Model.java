@@ -136,9 +136,6 @@ public class Model extends MultiGraph implements ViewerListener {
 
 		System.out.println();
 
-		
-		display();
-		
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
         viewPipe.addSink(new VerboseSink());
@@ -372,16 +369,17 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 		
 		Iterator<Node> it3 = super.getNodeIterator();
-		Iterator<Node> it4 = super.getNodeIterator();
 		
 		while (it3.hasNext())
 		{
 			Node n3 = it3.next();
+			Iterator<Node> it4 = super.getNodeIterator();
 			while (it4.hasNext())
 			{
 				Node n4 = it4.next();
 				if (n3 != null && n4 != null)
 				{
+					System.out.println(n3.getId() + " " + n4.getId());
 					Edge e2 = getEdge(n3.getId() + n4.getId());
 					if (e2 != null && selectedNodes.contains(n3) && selectedNodes.contains(n4))
 					{
@@ -391,7 +389,6 @@ public class Model extends MultiGraph implements ViewerListener {
 					{
 						e2.setAttribute("ui.label", "");
 					}
-						
 				}
 			}
 		}
