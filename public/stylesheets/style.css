@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 html, body {
     width:100%;
     min-width: 100%;
@@ -528,4 +529,531 @@ html, body {
 
 #favorWaitPopup .container {
     height: 100%;
+=======
+html, body {
+    width:100%;
+    min-width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.room {
+    background-color: #19194C !important;
+    color: white !important;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+}
+
+@media (max-width:641px) { /* small devices */ 
+    html, body, .container-fluid, .room {
+        height: 1000px;
+        overflow-y: scroll;
+    }
+    
+    #loginInput {
+        width: 100% !important;
+    }
+    
+    #loginInput #title {
+        font-size: 3.5em !important;
+    }
+    
+    #input button {
+        width: 40% !important;
+    }
+    
+    .popup {
+        min-width: 100% !important;
+    }
+    
+    .card {
+        cursor: pointer !important;
+    }
+    
+    #playerList {
+        float: right !important;
+    }
+    
+    #chatbox {
+        float: left !important;
+    } 
+}
+
+@media (max-height: 600px) {
+    html, body, .container-fluid, .room {
+        height: 1000px;
+        overflow-y: scroll;
+    }
+}
+
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#login {
+    color: white;
+    z-index: 10;
+}
+
+#lobby {
+    z-index: 9;
+}
+
+#loginInput {
+    width: 50%;
+    height: 100%;
+    min-width: 50%;
+    min-height: 100%;
+}
+
+#loginInput div {
+    width: 100%;
+    min-width: 100%;
+    padding: 10px;
+}
+
+#loginInput #title {
+    font-size: 4em;
+    margin-bottom: 10px;
+    max-width: 100%;
+}
+
+#loginButton {
+    width: 50%;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.error {
+    background: #D9534F;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+#gameList {
+    height: 100%;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    background: #0A0A33;
+    padding: 0;
+    overflow: hidden;
+}
+
+#userList {
+    background: #2E2E69;
+    height: 100%;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    padding: 0;
+    overflow: hidden;
+    border-left: 1px #46469F solid;
+}
+
+.top-bar {
+    height: 35px;
+    line-height: 35px;
+    background: #23234F;
+    width: 100%;
+}
+
+#gameList .top-bar, #chatBox .top-bar {
+    background: #26264C;
+}
+
+#newGameButton {
+    float: right;
+    border-radius: 0px;
+
+}
+
+#userList .top-bar {
+    background: #26264C;
+}
+
+.content {
+    padding: 5px;
+    display: block;
+    overflow-y: scroll;
+    height: calc(100% - 35px);
+    width: 100%;
+}
+
+.message {
+    margin-bottom: 5px; 
+    word-wrap: break-word;
+}
+
+.message-error {
+    color: #d9534f;
+}
+
+.message-system {
+    color: #5bc0de;
+}
+
+.message-system-green {
+    color: #5cb85c;
+}
+
+.message-local {
+    color: #f0ad4e;
+}
+
+.user {
+    min-width: 100%;
+    width: 100%;
+    border-bottom: 1px #46469F solid;
+    padding: 5px;
+    margin-bottom: 5px;
+    padding-bottom: 10px;
+    word-wrap: break-word;
+}
+
+.user:last-child {
+    border: none;
+}
+
+.user .status {
+    display: inline-block;
+    float: right;
+    padding: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+    height: 24px;
+    transform: translateY(-2px);
+    border-radius: 4px;
+    margin-right: 5px;
+}
+
+.user #name {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0;
+    overflow: hidden;
+    padding-left: 5px;
+    padding-right: 5px;
+    max-width: 50%;
+    display: inline-block;
+}
+
+.user #name.status-blue {
+    border-radius: 4px;
+}
+
+.status-red {
+    background: #D9534F;
+}
+
+.status-green {
+    background: #5cb85c;
+}
+
+.status-blue {
+    background: #5bc0de;
+}
+
+.status-grey {
+    background: darkgrey;
+}
+
+.game {
+    background: #2E2E69;
+    display: inline-block;
+    min-width: 30%;
+    text-align: center;
+    margin: 5px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.game #top {
+    height: 90%;
+    padding: 20px;
+}
+
+.game #bottom {
+    height: 10%;
+}
+
+.game #bottom button {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+/* The game room */
+#game {
+    z-index: 5;
+}
+
+#game #container {
+    height: calc(100% - 250px);
+    position: relative;
+}
+
+#game #playArea {
+    height: calc(100% - 204px);
+    position: relative;
+}
+
+#playArea #playInput {
+    width: 100%;
+}
+
+#game #container #input {
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+#game #leave {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 10px;
+    z-index: 25;
+}
+
+#input button {
+    width: 25%;
+}
+
+#waitingInput {
+    margin-bottom: 20px;
+}
+
+#chat {
+    height: 250px;
+    background: #2E2E69;
+    -webkit-box-shadow: 0px -2px 15px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px -2px 15px 0px rgba(0,0,0,0.75);
+    box-shadow: 0px -2px 15px 0px rgba(0,0,0,0.75);
+}
+
+#playerList {
+    float: left;
+    height: 100%;
+    padding: 0;
+    background: #19194C;
+}
+
+#chatBox {
+    background: #0A0A33;
+    float: right;
+    padding: 0;
+    height: 100%;
+}
+
+#chatBox .content {
+    padding: 10px;
+}
+
+#cardInput {
+    margin-top: 20px;
+    background: #111133;
+    height: 150px;
+    position: relative;
+    -webkit-box-shadow: inset 0px 0px 26px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: inset 0px 0px 26px 0px rgba(0,0,0,0.75);
+    box-shadow: inset 0px 0px 26px 0px rgba(0,0,0,0.75);
+}
+
+#playArea #cardInput {
+    margin: 0;
+    max-height: 250px;
+    min-height: 150px;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    background: none;
+}
+
+#cardDisplay {
+    overflow-x: scroll;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.card {
+    height: 125px;
+    line-height: 125px;
+    width: 110px;
+    background: white;
+    color: black;
+    border-radius: 4px;
+    display: inline-block;
+    margin-right: 10px;
+    border: 5px solid black;
+}
+
+.card:first-child {
+    margin-left: 10px; 
+}
+
+.card-selected {
+    background: #5bc0de;
+    color: white !important;
+    border: 5px solid white !important;
+}
+
+.card-nope {
+    color: #D42B31;
+    border: 5px solid #D42B31;
+}
+
+.card-attack {
+    color: #C8A755;
+    border: 5px solid #C8A755;
+}
+
+.card-skip {
+    color: #3DA8AA;
+    border: 5px solid #3DA8AA;
+}
+
+.card-defuse {
+    color: #8A9F56;
+    border: 5px solid #8A9F56;
+}
+
+.card-explode {
+    color: #CF1441;
+    border: 5px solid #CF1441;
+}
+
+.card-future {
+    color: #EA6987;
+    border: 5px solid #EA6987;
+}
+
+.card-seeOne {
+    color: #DF6987;
+    border: 5px solid #EA6987;
+}
+
+.card-seeOne {
+    color: #6F6A81;
+    border: 5px solid #2ED9A7;
+}
+
+.card-favor {
+    color: #A9A097;
+    border: 5px solid #A9A097;
+}
+
+.card-shuffle {
+    color: #973A36;
+    border: 5px solid #973A36;
+}
+
+.card-regular {
+    color: #B58865;
+    border: 5px solid #B58865;
+}
+
+.card span{
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: normal;
+    padding: 10px;
+}
+
+.card-big {
+    height: 150px;
+    line-height: 150px;
+    width: 132px;
+    -webkit-box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.75);
+    box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.75);
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Chrome/Safari/Opera */
+    -khtml-user-select: none;    /* Konqueror */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;       /* IE/Edge */
+    user-select: none;           /* non-prefixed version, currently
+                                  not supported by any browser */
+    cursor:default;
+}
+
+#overlay {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+#backdrop {
+    background: black;
+    opacity: 0.8;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.popup {
+    min-width: 400px;
+    min-height: 300px;
+    max-height: 400px;
+    max-width: 600px;
+    width: 100%;
+    height: 100%;
+    background: #19194C;
+    border: 5px #46469F solid;
+    border-radius: 10px;
+    opacity: 1;
+}
+
+.popup .container {
+    width: 100%;
+    height: calc(100% - 54px);
+}
+
+.popup .container #text {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 10px;
+}
+
+.popup .container #content {
+    position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.popup .buttonGroup {
+    width: 100%;
+    height: 34px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.buttonGroup button {
+    width: 40%;
+}
+
+#favorWaitPopup {
+    min-height: 150px;
+    max-height: 200px;
+}
+
+#favorWaitPopup .container {
+    height: 100%;
+>>>>>>> a8e9c5dd3d5b5d981ec650eccec24b0f0b9db387
 }
