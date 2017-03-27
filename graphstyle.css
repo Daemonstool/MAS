@@ -3,7 +3,6 @@ graph{
 }
 
 node{
-    fill-mode: dyn-plain;
     text-background-color: #A9A9A9;
     text-background-mode: rounded-box;
     text-alignment: at-left;
