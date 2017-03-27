@@ -1,8 +1,12 @@
 package model;
 
+import java.awt.Color;
 import java.awt.GridLayout;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,19 +22,25 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.view.Viewer;
+import org.graphstream.ui.view.ViewerListener;
+import org.graphstream.ui.view.ViewerPipe;
+import org.graphstream.util.VerboseSink;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import logic.Formula;
 
-public class Model extends MultiGraph {
+public class Model extends MultiGraph implements ViewerListener {
 	
 	private int worldCount;
 	private ArrayList<Formula> commonKnowledge;
 	private ArrayList<String> agents;
 
 	private ArrayList<String> messages = new ArrayList<String>();
+	
+	private ArrayList<String> clickedWorlds = new ArrayList<>();
+	private ArrayList<Node> selectedNodes = new ArrayList<>();
 
 	public Model() {
 		super("Arbitrary String #1");
@@ -133,7 +143,15 @@ public class Model extends MultiGraph {
 		args2.add("fuck");
 		args2.add("Explode");
 
-		display();
+		ViewerPipe viewPipe = display().newViewerPipe();
+		viewPipe.addViewerListener(this);
+        viewPipe.addSink(new VerboseSink());
+        viewPipe.pump();
+            	
+		
+        while (true) {
+            viewPipe.pump();
+        }
 	}
 	
 	private String getWorldName(){
@@ -153,6 +171,37 @@ public class Model extends MultiGraph {
 		Node n = getNode(node);
 		ArrayList<String> atoms = n.getAttribute("atoms");
 		atoms.add(atom);
+	}
+	
+	public void constructFromFile(String s)
+	{
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(s));
+			
+			String line;
+			while((line = in.readLine()) != null)
+			{
+			    System.out.println(line);
+			    String[] args = line.split(" ");
+			    if (args.length == 2)
+			    	addAtom(args[0], args[1]);
+			    else if (args.length == 4 && args[2].equals("B"))
+			    {
+			    	addRelation(args[0], args[1], args[3]);
+			    	addRelation(args[1], args[0], args[3]);
+			    }
+			    else if (args.length == 4 && args[2].equals("D"))
+			    	addRelation(args[0], args[1], args[3]);
+			}
+			in.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -253,16 +302,19 @@ public class Model extends MultiGraph {
 		addAttribute("ui.stylesheet", stylesheet);
 
 		Iterator<Node> nodes = getNodeIterator();
+	
 		while (nodes.hasNext()) {
 			Node n = nodes.next();
+			n.addAttribute("ui.color", new Color(0, 0, 0));
 			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
 		}
 		Iterator<Edge> edges = getEdgeIterator();
 		while (edges.hasNext()) {
 			Edge e = edges.next();
-			e.setAttribute("ui.label", e.getId() + ": " + e.getAttribute("agents").toString());
+			//e.setAttribute("ui.label", e.getId() + ": " + e.getAttribute("agents").toString());
+			e.setAttribute("ui.label", "");	
 		}
-
+		
 		return super.display();
 	}
 	
@@ -307,5 +359,63 @@ public class Model extends MultiGraph {
 
 	public static void main(String[] args) {
 		new Model();
+	}
+
+	@Override
+	public void viewClosed(String viewName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void buttonPushed(String id) {
+		// TODO Auto-generated method stub
+		
+		Iterator<Edge> it = getNode(id).getEachEdge().iterator();
+		
+		if (selectedNodes.contains(getNode(id)))
+		{
+			selectedNodes.remove(getNode(id));
+			getNode(id).removeAttribute("ui.color");
+			getNode(id).addAttribute("ui.color", new Color(0, 0, 0));
+		}
+		else
+		{
+			selectedNodes.add(getNode(id));
+			getNode(id).removeAttribute("ui.color");
+			getNode(id).addAttribute("ui.color", new Color(255, 0, 0));
+		}
+		
+		Iterator<Node> it3 = super.getNodeIterator();
+		
+		while (it3.hasNext())
+		{
+			Node n3 = it3.next();
+			Iterator<Node> it4 = super.getNodeIterator();
+			while (it4.hasNext())
+			{
+				Node n4 = it4.next();
+				if (n3 != null && n4 != null)
+				{
+					System.out.println(n3.getId() + " " + n4.getId());
+					Edge e2 = getEdge(n3.getId() + n4.getId());
+					if (e2 != null && selectedNodes.contains(n3) && selectedNodes.contains(n4))
+					{
+						e2.setAttribute("ui.label", e2.getAttribute("agents").toString());
+					}
+					else if (e2 != null)
+					{
+						e2.setAttribute("ui.label", "");
+					}
+				}
+			}
+		}
+		
+	}
+
+	@Override
+	public void buttonReleased(String id) {
+		// TODO Auto-generated method stub
+		
 	}
 }

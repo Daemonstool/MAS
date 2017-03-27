@@ -297,6 +297,8 @@ module.exports = function(io, EK) {
             io.emit($.GAME.UPDATE, {
                 game: game.sanitize()
             });
+
+
         });
 
         /**
@@ -376,11 +378,26 @@ module.exports = function(io, EK) {
                         });
                         
                         console.log('Started game: ' + game.id);
+
+                        // Send INIT MESSAGE:
+                        for (var k in EK.connectedUsers) 
+                          if (EK.connectedUsers[k].name == "Admin") // log to admins
+                            for (var i in EK.connectedUsers)
+                              if (EK.connectedUsers[i].name != "Admin") // Admins themselves do not have cards
+                              {
+                                var tmpHandStr = ""; // append cards to this string.
+                                for (var tmpCard in game.getPlayer(EK.connectedUsers[i]).hand) // player = game.getPlayer(user), then get its hand.
+                                  tmpHandStr = tmpHandStr + " " + game.getPlayer(EK.connectedUsers[i]).hand[tmpCard].name;
+                                io.to(EK.connectedUsers[k].id).emit('message', "INT" + " " + EK.connectedUsers[i].name + tmpHandStr);
+                              }
+                        // End INIT MESSAGE part.
                     } else {
                         socket.emit($.GAME.START, {
                             error: 'Could not start game'
                         });
                     }
+                    
+
                 }
             }
 
@@ -441,11 +458,16 @@ module.exports = function(io, EK) {
                 var player = game.getPlayer(user);
                 
                 //Return the player hand
-                if (player) {
-                    socket.emit($.GAME.PLAYER.HAND, {
-                        player: game.getPlayer(user),
-                        hand: game.getPlayer(user).hand
-                    });
+                if (player) 
+                {
+                  socket.emit($.GAME.PLAYER.HAND, {
+                      player: game.getPlayer(user),
+                      hand: game.getPlayer(user).hand
+                  });
+                
+
+
+
                 }
             }
         });
@@ -503,6 +525,16 @@ module.exports = function(io, EK) {
                         //Make player draw a card and if it is an explode then remove a defuse
                         //If player has no defuse then player is out
                         var drawn = game.drawCards(player, 1);
+						
+						var arrayLength = EK.connectedUsers.length;
+						for (var k in EK.connectedUsers) {
+							
+							if (EK.connectedUsers[k].name == "Admin")
+							{
+								io.to(EK.connectedUsers[k].id).emit('message', "DC" + " " + player.user.name + " " + drawn[0].name);
+							}
+							//Do something
+						}
                         socket.emit($.GAME.PLAYER.DRAW, {
                             game: game.sanitize(),
                             cards: drawn,
@@ -518,6 +550,7 @@ module.exports = function(io, EK) {
 
                     //Use while loop incase player picks up 2 explodes
                     while (player.hasCardType($.CARD.EXPLODE)) {                    
+                        var arrayLength = EK.connectedUsers.length;
                         if (player.hasCardType($.CARD.DEFUSE)) {
                             //Remove deufse and add it to the discard pile
                             var defuse = player.removeCardType($.CARD.DEFUSE);
@@ -531,10 +564,29 @@ module.exports = function(io, EK) {
                             game.drawPile.splice(index, 0, explode);
                             
                             state = $.GAME.PLAYER.TURN.DEFUSED;
+                            for (var k in EK.connectedUsers) 
+                            {
+                                
+                                if (EK.connectedUsers[k].name == "Admin")
+                                {
+                                    io.to(EK.connectedUsers[k].id).emit('message', "DF" + " " + player.user.name + " " + drawn[0].name);
+                                }
+                                //Do something
+                            }
+
                         } else {
                             //Player exploded
                             state = $.GAME.PLAYER.TURN.EXPLODED;
                             game.explodePlayer(player);
+                            for (var k in EK.connectedUsers) 
+                            {
+                                
+                                if (EK.connectedUsers[k].name == "Admin")
+                                {
+                                    io.to(EK.connectedUsers[k].id).emit('message', "EK" + " " + player.user.name + " " + drawn[0].name);
+                                }
+                                //Do something
+                            }
                         }
                     }
 
@@ -823,26 +875,26 @@ module.exports = function(io, EK) {
 							if (EK.connectedUsers[k].name == "Admin")
 							{
 								io.to(EK.connectedUsers[k].id).emit('message', "NP" + " " + player.user.name + " " + cardset);
-								console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
 							}
 							//Do something
 						}
-                        var cardSet = new CardSet(player, [card]);
-                        cardSet.effectPlayed = true;
-                        game.discardPile.push(cardSet);
-                        
-						
-                        //Set the nope played and amount
-                        EK.pendingSets[data.setId].set.nopePlayed = true;
-                        EK.pendingSets[data.setId].set.nopeAmount += 1;
-                    
-                        //Notify players that a nope was played
-                        io.in(game.id).emit($.GAME.PLAYER.NOPE, {
-                            player: player,
-                            cards: [card],
-                            game: game.sanitize(),
-                            set: EK.pendingSets[data.setId].set
-                        });
+
+            var cardSet = new CardSet(player, [card]);
+            cardSet.effectPlayed = true;
+            game.discardPile.push(cardSet);
+            
+
+            //Set the nope played and amount
+            EK.pendingSets[data.setId].set.nopePlayed = true;
+            EK.pendingSets[data.setId].set.nopeAmount += 1;
+        
+            //Notify players that a nope was played
+            io.in(game.id).emit($.GAME.PLAYER.NOPE, {
+                player: player,
+                cards: [card],
+                game: game.sanitize(),
+                set: EK.pendingSets[data.setId].set
+            });
                         
                     } else {
                         socket.emit($.GAME.PLAYER.NOPE, {
@@ -919,12 +971,12 @@ module.exports = function(io, EK) {
                             //Remove the card from player and give it to other player
                             var card = player.removeCardWithId(data.card);
                             var arrayLength = EK.connectedUsers.length;
-    						for (var k in EK.connectedUsers) {
+    						
+                for (var k in EK.connectedUsers) {
     							
     							if (EK.connectedUsers[k].name == "Admin")
     							{
     								io.to(EK.connectedUsers[k].id).emit('message', "FV" + " " + player.user.name + " " + otherPlayer.user.name + " "  + card.name);
-    								console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
     							}
     							//Do something
     						}
