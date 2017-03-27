@@ -6,8 +6,8 @@ import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Scanner;
 
 import javax.swing.JLabel;
@@ -22,9 +22,7 @@ import org.graphstream.ui.view.Viewer;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import logic.Atom;
 import logic.Formula;
-import logic.Knows;
 
 public class Model extends MultiGraph {
 	
@@ -117,7 +115,7 @@ public class Model extends MultiGraph {
 		addAtom("w6","ek2");
 		addAtom("w7","ek3");
 		
-		this.agents.add("Henk");
+		this.agents.add("fuck");
 		this.agents.add("Joost");
 
 		for(int w1=1;w1<=8;++w1){
@@ -127,6 +125,13 @@ public class Model extends MultiGraph {
 				}
 			}
 		}
+		
+		ArrayList<String> args1 = new ArrayList<String>();
+		ArrayList<String> args2 = new ArrayList<String>();
+		args1.add("Joost");
+		args1.add("Explode");
+		args2.add("fuck");
+		args2.add("Explode");
 
 		display();
 	}
@@ -177,6 +182,7 @@ public class Model extends MultiGraph {
 
 	public void addRelation(String idFrom, String idTo, String agent) {
 		//adds a relation for an agent between two worlds
+		//System.out.println("Adding relation " + idTo+idFrom + " for agent " + agent);
 		Edge e = getEdge(idFrom+idTo);
 		if(e == null){
 			//need to add the edge
@@ -187,20 +193,41 @@ public class Model extends MultiGraph {
 		}
 	}
 	
-	public void removeRelation(String idFrom, String idTo, String agent){
-		//remove a relation for an agent between two world
-		Edge e = getEdge(idFrom+idTo);
+	public void removeRelation(String edgeId, String agent){
+		//remove a relation for an agent between two worlds
+		Edge e = getEdge(edgeId);
 		if(e != null){
 			ArrayList<String> agents = e.getAttribute("agents");
 			if(agents.contains(agent)){
+				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
 				agents.remove(agent);
 				if(agents.isEmpty()){
-					removeEdge(idFrom+idTo);
+					removeEdge(edgeId);
 				}
 				return;
 			}
 		}
-		System.err.println("Tried to remove agent " + agent + "on relation " + idFrom + "->" + idTo + "while that relation wasn't there!");
+		System.err.println("Tried to remove agent " + agent + "on relation " + edgeId + "while that relation wasn't there!");
+	}
+	
+	public void removeRelation(String idFrom, String idTo, String agent){
+		//remove a relation for an agent between two worlds
+		removeRelation(idFrom+idTo,agent);
+	}
+	
+	public boolean hasRelation(String edgeId, String agent){
+		Edge e = getEdge(edgeId);
+		if(e != null){
+			ArrayList<String> agents = e.getAttribute("agents");
+			return agents.contains(agent);
+		}else{
+			return false;
+		}
+		
+	}
+	
+	public boolean hasRelation(String idFrom, String idTo, String agent){
+		return hasRelation(idFrom+idTo,agent);
 	}
 
 	public ArrayList<String> getAtoms(String node) {
@@ -233,60 +260,44 @@ public class Model extends MultiGraph {
 		Iterator<Edge> edges = getEdgeIterator();
 		while (edges.hasNext()) {
 			Edge e = edges.next();
-			e.setAttribute("ui.label", e.getAttribute("agents").toString());
+			e.setAttribute("ui.label", e.getId() + ": " + e.getAttribute("agents").toString());
 		}
 
 		return super.display();
 	}
 	
+	private void STF(ArrayList<String> args, int card){
+		String player = args.get(0);
+		if(args.size() > card && args.get(card).equals("Explode")){
+			Iterator<Node> nodes = getNodeIterator();
+			while(nodes.hasNext()){
+				Node n1 = nodes.next();
+				ArrayList<String> atoms = n1.getAttribute("atoms");
+				if(!atoms.contains("ek"+card)){
+					//node contradicts the new information
+					HashSet<String> toRemove = new HashSet<String>();
+					Iterator<Edge> edges = n1.getEdgeIterator();
+					while(edges.hasNext()){
+						//search for edges that need to be removed
+						Edge e = edges.next();
+						toRemove.add(e.getId());
+					}
+					//actually remove the edges
+					for(String e : toRemove){
+						if(hasRelation(e,player)){
+							removeRelation(e,player);
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	private void update(String type, ArrayList<String> args){
-		switch(type){
-			case "STF":
-				
-				break;
-			case "BS":
-				
-				break;
-			case "NS":
-				
-				break;
-			case "DS":
-				
-				break;
-			case "NP":
-				
-				break;
-			case "SH":
-				
-				break;
-			case "EK":
-				
-				break;
-			case "ATT":
-				
-				break;
-			case "FV":
-				
-				break;
-			case "S1":
-				Node n = addNode(getWorldName());
-				addAtom(n.getId(),"c1");
-				break;
-			case "S3":
-				
-				break;
-			case "AF":
-				
-				break;
-			case "SP":
-				
-				break;
-			case "DC":
-				
-				break;
-			default:
-				
-				break;
+		if(type.equals("STF")){
+			STF(args,1);
+			STF(args,2);
+			STF(args,3);
 		}
 	}
 	
