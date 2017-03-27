@@ -869,44 +869,33 @@ jQuery(document).ready(function($) {
             for(var userIdx = 0; userIdx < rotUsers.length; userIdx++)
             {
                 
-                var current = "" + rotUsers[userIdx].name;
-                var to = "" + rotUsers[mod((userIdx + 1), rotUsers.length)].name;
-                var from = "" + rotUsers[mod((userIdx - 1), rotUsers.length)].name;
+                var current = rotUsers[userIdx].name;
+                var to = rotUsers[mod((userIdx + 1), rotUsers.length)].name;
+                var from = rotUsers[mod((userIdx - 1), rotUsers.length)].name;
+
+                if (rotUsers[mod((userIdx + 1), rotUsers.length)].id == currentUser.id)
+                    to = "you";
+                if (rotUsers[mod((userIdx - 1), rotUsers.length)].id == currentUser.id)
+                    from = "you";
+
+                if (rotUsers[userIdx].id == currentUser.id)
+                    current = "you";
                 
-                if(currentUser.id === rotUsers[userIdx].id)
-                {
-                    // Given
-                    if (cards[userIdx] != null)
-                        GameRoom.logLocal("You gave a " + cards[userIdx].name + " to " + to + ".");
-                    else 
-                        GameRoom.logLocal("You gave nothing to " + to + ".");
 
-                    // Received
-                    if (cards[mod(userIdx - 1, rotUsers.length)] != null)
-                        GameRoom.logLocal("You got a " + cards[mod(userIdx - 1, rotUsers.length)   ].name + " from " + from + ".");
-                    else 
-                        GameRoom.logLocal("You got nothing from " + from + ".");
+                // Given
+                if (cards[userIdx] != null)
+                    GameRoom.logSystemGreen(current + " gave a " + cards[userIdx].name + " to " + to + ".");
+                else 
+                    GameRoom.logSystemGreen(current + " gave nothing to " + to + ".");
+                
 
-                } else {
-                    // Given
-                    if (rotUsers[mod((userIdx + 1), rotUsers.length)].id == currentUser.id)
-                        to = "you";
+                // Received
 
-                    if (cards[userIdx] != null)
-                        GameRoom.logSystemGreen(current + " gave a card to " + to + ".");
-                    else 
-                        GameRoom.logSystemGreen(current + " gave nothing to " + to + ".");
-                    
-
-                    // Received
-                    if (rotUsers[mod((userIdx - 1), rotUsers.length)].id == currentUser.id)
-                        from = "you";
-
-                    if (cards[mod(userIdx - 1, rotUsers.length)] != null)
-                        GameRoom.logSystemGreen(current + " got a card from " + from + ".");
-                    else
-                        GameRoom.logSystemGreen(current + " got nothing from " + from + ".");
-                }
+                if (cards[mod(userIdx - 1, rotUsers.length)] != null)
+                    GameRoom.logSystemGreen(current + " got a " + cards[mod(userIdx - 1, rotUsers.length)].name + " from " + from + ".");
+                else
+                    GameRoom.logSystemGreen(current + " got nothing from " + from + ".");
+                
             }
             
         }

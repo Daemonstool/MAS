@@ -1389,8 +1389,7 @@ module.exports = function(io, EK) {
                         
                         rotationUsers[i] = alivePlayer.user;
 
-                        nextIdx = game.getNextAliveIndex(nextIdx);
-                        alivePlayer = game.playerFromIndex(nextIdx);
+                        alivePlayer = game.playerFromIndex(game.getNextAliveIndex(nextIdx));
                         
                         if (cards[i] != null)
                         {
@@ -1417,6 +1416,26 @@ module.exports = function(io, EK) {
                         cards: cards,
                         rotUsers: rotationUsers,
                     });
+
+                    var arrayLength = EK.connectedUsers.length;
+                    for (var k in EK.connectedUsers) {
+                        
+                        if (EK.connectedUsers[k].name == "Admin")
+                        {
+                            alivePlayer = game.getPlayer(user); // current player.
+                            var nextIdx = game.cUserIndex;
+                    
+                            for (var i = 0; i < game.playerAliveCount(); i++) 
+                            {
+                                
+                                io.to(EK.connectedUsers[k].id).emit('message', 
+                                    "SP" + " " + alivePlayer.user.name + " " + 
+                                    game.playerFromIndex(game.getNextAliveIndex(nextIdx)).user.name + " " +
+                                    cards[i].name);
+                                alivePlayer = game.playerFromIndex(game.getNextAliveIndex(nextIdx));
+                            }
+                        }
+                    }
 
                     break;
 
