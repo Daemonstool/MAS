@@ -1142,6 +1142,7 @@ module.exports = function(io, EK) {
                     for (var i = 0; i < game.playerAliveCount(); i++) 
                     {
                         cards[i] = alivePlayer.getRandomCard(); // may be undefined.
+                        
                         nextIdx = game.getNextAliveIndex(nextIdx);
                         alivePlayer = game.playerFromIndex(nextIdx);
                     }
@@ -1150,21 +1151,38 @@ module.exports = function(io, EK) {
                     var nextIdx = game.cUserIndex;
                     for (var i = 0; i < game.playerAliveCount(); i++)
                     {
-                        //for (var j = 0; j < alivePlayer.hand.length; j++)
-                        //    console.log("hand before: " + alivePlayer.hand[j].name);
                         
-                        alivePlayer.removeCard(cards[i]);
+                        if (cards[i] != null)
+                        {
+                            alivePlayer.removeCard(cards[i]);
+                        }
+                        
                         rotationUsers[i] = alivePlayer.user;
-                        //for (var j = 0; j < alivePlayer.hand.length; j++)
-                        //    console.log("hand after: " + alivePlayer.hand[j].name);
-                        
+
                         nextIdx = game.getNextAliveIndex(nextIdx);
                         alivePlayer = game.playerFromIndex(nextIdx);
-                        alivePlayer.addCard(cards[i]);
                         
+                        if (cards[i] != null)
+                        {
+                            alivePlayer.addCard(cards[i]);
+                        }
                     }
 
+                    //debug 
+                    /*
+                    for (var i = 0; i < game.playerAliveCount(); i++)
+                    {
+                    
+                        for (var j = 0; j < alivePlayer.hand.length; j++) {
+                            console.log("user: " + alivePlayer.user.name);
+                            console.log("hand: " + alivePlayer.hand[j].name);
+                            nextIdx = game.getNextAliveIndex(nextIdx);
+                            alivePlayer = game.playerFromIndex(nextIdx);
+                            console.log('\n');
+                        }
+                    }*/
 
+                    console.log(cards);
                     io.in(game.id).emit($.GAME.PLAYER.GIVETOLEFT, {
                         cards: cards,
                         rotUsers: rotationUsers,

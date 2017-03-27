@@ -875,25 +875,24 @@ jQuery(document).ready(function($) {
                 
                 if(currentUser.id === rotUsers[userIdx].id)
                 {
-                
                     // Given
-                    if (typeof cards[userIdx] != undefined)
-                        GameRoom.logLocal("You1 gave a " + cards[userIdx].name + " to " + to + ".");
+                    if (cards[userIdx] != null)
+                        GameRoom.logLocal("You gave a " + cards[userIdx].name + " to " + to + ".");
                     else 
-                        GameRoom.logLocal("You2 gave nothing to " + to + ".");
+                        GameRoom.logLocal("You gave nothing to " + to + ".");
 
                     // Received
-                    if (typeof cards[mod(userIdx - 1, rotUsers.length)] != undefined)
-                        GameRoom.logLocal("You3 got a " + cards[mod(userIdx - 1, rotUsers.length)   ].name + " from " + from + ".");
+                    if (cards[mod(userIdx - 1, rotUsers.length)] != null)
+                        GameRoom.logLocal("You got a " + cards[mod(userIdx - 1, rotUsers.length)   ].name + " from " + from + ".");
                     else 
-                        GameRoom.logLocal("You4 got nothing from " + from + ".");
+                        GameRoom.logLocal("You got nothing from " + from + ".");
 
                 } else {
                     // Given
                     if (rotUsers[mod((userIdx + 1), rotUsers.length)].id == currentUser.id)
                         to = "you";
 
-                    if (typeof cards[userIdx] != undefined)
+                    if (cards[userIdx] != null)
                         GameRoom.logSystemGreen(current + " gave a card to " + to + ".");
                     else 
                         GameRoom.logSystemGreen(current + " gave nothing to " + to + ".");
@@ -903,18 +902,18 @@ jQuery(document).ready(function($) {
                     if (rotUsers[mod((userIdx - 1), rotUsers.length)].id == currentUser.id)
                         from = "you";
 
-                    if (typeof cards[mod(userIdx - 1, rotUsers.length)] != undefined)
+                    if (cards[mod(userIdx - 1, rotUsers.length)] != null)
                         GameRoom.logSystemGreen(current + " got a card from " + from + ".");
                     else
                         GameRoom.logSystemGreen(current + " got nothing from " + from + ".");
                 }
             }
             
-            //update all hands:
-            io.emit($C.GAME.PLAYER.HAND + { gameId: game.id }); 
-            //Get the discard pile
-            io.emit($C.GAME.DISCARDPILE, { gameId: game.id });        
         }
+        //update all hands:
+        io.emit($C.GAME.PLAYER.HAND, { gameId: game.id }); 
+        //Get the discard pile
+        io.emit($C.GAME.DISCARDPILE, { gameId: game.id });        
     });
 
     io.on($C.GAME.PLAYER.SEETHREE, function(data) {
