@@ -1134,87 +1134,40 @@ module.exports = function(io, EK) {
 
                 case $.CARD.GIVETOLEFT:
                     // Get a index from each alive player that passes a card to the next player.
-                    var toArray = [];
-                    var fromArray = [];
-                    // These players were not able to give a card to the left.
-                    var noCardToPlayers = [];
-                    var noCardFromPlayers = [];
-                    // The random cards on the same index.
-                    var randomCards = [];
+                    var rotationUsers = [];
+                    var cards = [];
+                    
                     alivePlayer = game.getPlayer(user); // current player.
                     var nextIdx = game.cUserIndex;
-
-                    for (var i = 0; i < game.playerAliveCount(); i++) {
-                        // check if players have a card (.hand.length)
-                        // if not, do not remove a card.
-                        if (alivePlayer.hand.length)
-                        {
-                            var randCard = alivePlayer.getRandomCard();
-
-                            // check if the only card is a card that is just given to the player.
-                            // then we don't give anything to the next player.
-                            if (alivePlayer.hand.length == 1 && randomCards.length > 0)
-                                console.log("test");
-                                for (var j = 0; j < randomCards.length; j++)
-                                    console.log(randCard.id);
-                                    console.log(randomCards.length);
-                                    console.log(randomCards.length > 0);
-                                    console.log(randomCards[j].id);
-                                    if (randCard.id == randomCards[j].id)
-                                    {
-                                        // increment aliveplayer and go to next in for loop.
-                                        noCardToPlayers.push(alivePlayer.user.id);
-                                        nextIdx = game.getNextAliveIndex(nextIdx);
-                                        alivePlayer = game.playerFromIndex(nextIdx);
-                                        noCardFromPlayers.push(alivePlayer.user.id);
-                                        continue;
-                                    }
-
-                            //This card cannot be a card that is just given to you
-                            for (var j = 0; j < randomCards.length; j++)
-                                while (randomCard.id == randomCards[j].id)
-                                    randCard = alivePlayer.getRandomCard();
-
-                            //debug: console.log(alivePlayer.user.name, ' gives ', randCard.name);
-                            // remove the card.
-                            alivePlayer.removeCard(randCard);
-                            
-                            // keep track of the card.
-                            randomCards.push(randCard);
-                            // keep track of the index.
-                            toArray.push(alivePlayer.user.id);    
-
-                            // duh.
-                            nextIdx = game.getNextAliveIndex(nextIdx);
-                            alivePlayer = game.playerFromIndex(nextIdx);
-                            
-                            // add it to the next player
-                            alivePlayer.addCard(randCard);
-
-                            // keep track of this player
-                            fromArray.push(alivePlayer.user.id);    
-
-                            // debug: console.log(' to', alivePlayer.user.name);   
-                            //don't increment the alivePlayer again but continue in the loop:
-                            continue;
-                        } 
-                        
-                        // debug: console.log(alivePlayer.user.name, ' gives nothing to ');
-                        
-                        // increment alivePlayer
+                    for (var i = 0; i < game.playerAliveCount(); i++) 
+                    {
+                        cards[i] = alivePlayer.getRandomCard(); // may be undefined.
                         nextIdx = game.getNextAliveIndex(nextIdx);
                         alivePlayer = game.playerFromIndex(nextIdx);
-                        // debug: console.log(alivePlayer.user.name);   
+                    }
+                    
+                    alivePlayer = game.getPlayer(user); // current player.
+                    var nextIdx = game.cUserIndex;
+                    for (var i = 0; i < game.playerAliveCount(); i++)
+                    {
+                        //for (var j = 0; j < alivePlayer.hand.length; j++)
+                        //    console.log("hand before: " + alivePlayer.hand[j].name);
+                        
+                        alivePlayer.removeCard(cards[i]);
+                        rotationUsers[i] = alivePlayer.user;
+                        //for (var j = 0; j < alivePlayer.hand.length; j++)
+                        //    console.log("hand after: " + alivePlayer.hand[j].name);
+                        
+                        nextIdx = game.getNextAliveIndex(nextIdx);
+                        alivePlayer = game.playerFromIndex(nextIdx);
+                        alivePlayer.addCard(cards[i]);
+                        
                     }
 
-                    //Ask other player to see one card
+
                     io.in(game.id).emit($.GAME.PLAYER.GIVETOLEFT, {
-                        toArray: toArray,
-                        fromArray: fromArray,
-                        cards: randomCards,
-                        noCardToPlayers: noCardToPlayers,
-                        noCardFromPlayers: noCardFromPlayers,
-                        nAlive: game.playerAliveCount(),
+                        cards: cards,
+                        rotUsers: rotationUsers,
                     });
 
                     break;
