@@ -387,7 +387,7 @@ Game.prototype.resetDeck = function() {
     var multiplier = (this.players.length > 5) ? 2 : 1;
     
     //Generate cards
-    for (var i = 0; i < 1 * multiplier; i++) {
+    for (var i = 0; i < 5 * multiplier; i++) {
         if (i < 4 * multiplier) {
             //Special
            
