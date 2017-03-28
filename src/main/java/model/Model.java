@@ -136,21 +136,18 @@ public class Model extends MultiGraph implements ViewerListener {
 			}
 		}
 		
-		ArrayList<String> args1 = new ArrayList<String>();
-		ArrayList<String> args2 = new ArrayList<String>();
-		args1.add("Joost");
-		args1.add("Explode");
-		args2.add("fuck");
-		args2.add("Explode");
-
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
         viewPipe.addSink(new VerboseSink());
         viewPipe.pump();
-            	
 		
         while (true) {
             viewPipe.pump();
+            try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				System.err.println("Interrupted");
+			}
         }
 	}
 	
