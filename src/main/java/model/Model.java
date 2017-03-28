@@ -112,11 +112,6 @@ public class Model extends MultiGraph implements ViewerListener {
 		addAtom("w1","ek1");
 		addAtom("w2","ek2");
 		addAtom("w3","ek3");
-		
-		//this.agents.add("fuck");
-		//this.agents.add("Joost");
-
-
 
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
@@ -266,6 +261,10 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(type.equals("INITDONE")){
 			INITDONE();
 		}
+		
+		if(type.equals("SH")){
+			SH(); //Throw away all knowledge.
+		}
 	}
 
 	public static void main(String[] args) {
@@ -365,14 +364,26 @@ public class Model extends MultiGraph implements ViewerListener {
 		this.agents.add(player);
 	}
 	
-	private void INITDONE(){
+	
+	private void interConnectAll(){
 		for(int w1 = 1; w1 <= worldCount; ++w1){
 			for(int w2 = 1; w2 <= worldCount; ++w2){
 				for(String a : this.agents){
-					addRelation("w" + w1, "w" + w2, a);
+					if (!hasRelation("w" + w1, "w"+ w2, a)) {
+						addRelation("w" + w1, "w" + w2, a);
+					}
 				}
 			}
 		}
+	}
+	
+	private void INITDONE(){
+		interConnectAll();
+	}
+	
+	
+	private void SH(){
+		interConnectAll();
 	}
 	
 	private void STF(ArrayList<String> args, int card){
@@ -394,7 +405,7 @@ public class Model extends MultiGraph implements ViewerListener {
 					//actually remove the edges
 					for(String e : toRemove){
 						if(hasRelation(e,player)){
-							removeRelation(e,player);
+							removeRelation(e, player);
 						}
 					}
 				}
