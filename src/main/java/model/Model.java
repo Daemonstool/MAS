@@ -112,11 +112,6 @@ public class Model extends MultiGraph implements ViewerListener {
 		addAtom("w1","ek1");
 		addAtom("w2","ek2");
 		addAtom("w3","ek3");
-		
-		//this.agents.add("fuck");
-		//this.agents.add("Joost");
-
-
 
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
@@ -266,6 +261,10 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(type.equals("INITDONE")){
 			INITDONE();
 		}
+		
+		if(type.equals("DC")){
+			drawCard(args);
+		}
 	}
 
 	public static void main(String[] args) {
@@ -400,6 +399,42 @@ public class Model extends MultiGraph implements ViewerListener {
 				}
 			}
 		}
+	}
+	
+	private boolean hasRelation(String agent, Node node){
+		return true;
+	}
+	
+	private boolean isReflexive(String agent, Node node){
+		return true;
+	}
+	
+	private void shiftWorldsForEK(){
+		//shift em :)
+	}
+	
+	private void drawCard(ArrayList<String> args){
+		// TODO: Update knowledge about hands
+		// String player = args.get(0);
+		// String card = args.get(1);
+		
+		// Shift knowledge about EK to next world for each agent.
+		for(String a : this.agents) {
+			Iterator<Node> nodes = getNodeIterator();
+			
+			
+			while(nodes.hasNext()){
+				//Check for each node if it only has a relation to itself for the agent: is reflexive
+				Node n1 = nodes.next();
+				//TODO write both methods below (hasRelation is an overloaded version for an node)
+				if( isReflexive(a, n1) && !hasRelation(a, n1)){
+					//actually shift worlds for EK
+					shiftWorldsForEK();
+				}
+			}
+			
+		}
+		
 	}
 	
 	public ArrayList<Formula> getCommonKnowledge() {
