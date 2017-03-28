@@ -265,6 +265,13 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(type.equals("SH")){
 			SH(); //Throw away all knowledge.
 		}
+		
+		// We dont have to check for nopes since the message is not sent anyway when someone card(set) is noped.
+		// Hence it is not processed in the model, therefore there is no gain of knowledge.
+		if(type.equals("NP")){
+			// Nothing ... until we keep track of nope cards in kripke worlds.
+		}
+		
 	}
 
 	public static void main(String[] args) {

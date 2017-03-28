@@ -846,22 +846,15 @@ module.exports = function(io, EK) {
 						var cards2 = EK.pendingSets[data.setId].set.cards;
 						var cardset = "" 
 						for (var k in cards2)
-						{
-							console.log(EK.pendingSets[data.setId].set.cards[k].name);
 							cardset = cardset + EK.pendingSets[data.setId].set.cards[k].name + " ";
-						}
 						
 						cardset = cardset + EK.pendingSets[data.setId].set.nopeAmount;
 						
 						var arrayLength = EK.connectedUsers.length;
-						for (var k in EK.connectedUsers) {
-							
+						for (var k in EK.connectedUsers)
 							if (EK.connectedUsers[k].name == "Admin")
-							{
 								io.to(EK.connectedUsers[k].id).emit('message', "NP" + " " + player.user.name + " " + cardset);
-							}
-							//Do something
-						}
+
 
             var cardSet = new CardSet(player, [card]);
             cardSet.effectPlayed = true;
@@ -1574,11 +1567,17 @@ module.exports = function(io, EK) {
         }
         
         if (pending.set.nopePlayed) {
+            //for (var k in EK.connectedUsers) 
+            //    if (EK.connectedUsers[k].name == "Admin") // log to admins
+            //        io.to(EK.connectedUsers[k].id).emit('message', "NPINIT");
+            
             //Poll the set
             EK.pendingSets[playedSet.id].set.nopePlayed = false;
             setTimeout(function() {
                 checkNopes(pending.set, data, socket, game);
-            }, game.nopeTime);
+                }, game.nopeTime);
+            
+
         } else {
             
             //If there is an even amount of nopes played then we can process
@@ -1598,6 +1597,10 @@ module.exports = function(io, EK) {
                     canNope: false
                 });
             }
+
+            //for (var k in EK.connectedUsers) 
+            //    if (EK.connectedUsers[k].name == "Admin") // log to admins
+            //        io.to(EK.connectedUsers[k].id).emit('message', "NPEND");
             
             //Remove the set from pending
             EK.removePendingSet(pending.set);

@@ -415,7 +415,7 @@ Game.prototype.resetDeck = function() {
         }
         
         this.drawPile.push(new Card(this.generateRandomID(), 'Future', $.CARD.FUTURE, 9));
-        //this.drawPile.push(new Card(this.generateRandomID(), 'Nope', $.CARD.NOPE, 3));
+        this.drawPile.push(new Card(this.generateRandomID(), 'Nope', $.CARD.NOPE, 3));
     }
 }
 
