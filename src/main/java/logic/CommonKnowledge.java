@@ -1,13 +1,22 @@
 package logic;
 
-import model.Model;
+import java.util.Iterator;
 
-public class CommonKnowledge {
+import org.graphstream.graph.Node;
+
+public class CommonKnowledge implements Formula {
 	
 	private Formula f;
 
-	public boolean evaluate(Model m) {
-		return m.getCommonKnowledge().contains(f);
+	public boolean evaluate(Node n) {
+		Iterator<Node> nodes = n.getBreadthFirstIterator();
+		while(nodes.hasNext()){
+			Node node = nodes.next();
+			if(!f.evaluate(node)){
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public String pprint() {

@@ -35,7 +35,6 @@ public class Model extends MultiGraph implements ViewerListener {
 	
 	private int worldCount;
 	private ArrayList<String> clickedWorlds = new ArrayList<>();
-	private ArrayList<Formula> commonKnowledge;
 	private ArrayList<String> agents;
 	private ArrayList<Node> selectedNodes = new ArrayList<>();
 	private ArrayList<String> messages = new ArrayList<>();
@@ -43,7 +42,6 @@ public class Model extends MultiGraph implements ViewerListener {
 	public Model() {
 		super("Arbitrary String #1");
 		this.worldCount = 0;
-		this.commonKnowledge = new ArrayList<Formula>();
 		this.agents = new ArrayList<String>();
 
 		Socket socket;
@@ -383,10 +381,6 @@ public class Model extends MultiGraph implements ViewerListener {
 				}
 			}
 		}
-	}
-	
-	public ArrayList<Formula> getCommonKnowledge() {
-		return commonKnowledge;
 	}
 
 	@Override
