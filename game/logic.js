@@ -531,7 +531,7 @@ module.exports = function(io, EK) {
                             
                             if (EK.connectedUsers[k].name == "Admin")
                             {
-                                io.to(EK.connectedUsers[k].id).emit('message', "DRAW" + " " + player.user.name + " " + drawn[0].name);
+                                io.to(EK.connectedUsers[k].id).emit('message', "DC" + " " + player.user.name + " " + drawn[0].name);
                             }
                             //Do something
                         }
