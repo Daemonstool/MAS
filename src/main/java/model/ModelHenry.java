@@ -90,6 +90,7 @@ public class ModelHenry extends MultiGraph implements ViewerListener {
 						ArrayList<String> arguments = new ArrayList<String>(Arrays.asList(Arrays.copyOfRange(substrings,1,substrings.length)));
 						System.out.println("New message of type " + type + " with arguments " + arguments.toString());
 						update(type,arguments);
+						System.out.println(arguments);
 					}else{
 						System.err.println("Invalid message: " + message);
 					}
@@ -149,7 +150,6 @@ public class ModelHenry extends MultiGraph implements ViewerListener {
         viewPipe.addSink(new VerboseSink());
         viewPipe.pump();
             	
-		
         while (true) {
             viewPipe.pump();
         }
@@ -389,10 +389,13 @@ public class ModelHenry extends MultiGraph implements ViewerListener {
 				Node n1 = nodes.next();
 				ArrayList<String> atoms = n1.getAttribute("atoms");
 				if(!atoms.contains("ek"+card)){
+					
+					System.out.println("REMOVE");
 					//node contradicts the new information
 					HashSet<String> toRemove = new HashSet<String>();
 					Iterator<Edge> edges = n1.getEdgeIterator();
 					while(edges.hasNext()){
+						System.out.println("REMOVEWHILE");
 						//search for edges that need to be removed
 						Edge e = edges.next();
 						toRemove.add(e.getId());
@@ -400,11 +403,13 @@ public class ModelHenry extends MultiGraph implements ViewerListener {
 					//actually remove the edges
 					for(String e : toRemove){
 						if(hasRelation(e,player)){
+							System.out.println("REMOVEFOR");
 							removeRelation(e,player);
 						}
 					}
 				}
 			}
+			display();
 		}
 	}
 	
