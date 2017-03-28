@@ -113,16 +113,10 @@ public class Model extends MultiGraph implements ViewerListener {
 		addAtom("w2","ek2");
 		addAtom("w3","ek3");
 		
-		this.agents.add("fuck");
-		this.agents.add("Joost");
+		//this.agents.add("fuck");
+		//this.agents.add("Joost");
 
-		for(int w1=1;w1<=worldCount;++w1){
-			for(int w2=1;w2<=worldCount;++w2){
-				for(String a : agents){
-					addRelation("w"+w1,"w"+w2,a);
-				}
-			}
-		}
+
 
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
@@ -264,6 +258,14 @@ public class Model extends MultiGraph implements ViewerListener {
 			STF(args,2);
 			STF(args,3);
 		}
+		
+		if(type.equals("INIT")){
+			INIT(args);
+		}
+		
+		if(type.equals("INITDONE")){
+			INITDONE();
+		}
 	}
 
 	public static void main(String[] args) {
@@ -356,6 +358,21 @@ public class Model extends MultiGraph implements ViewerListener {
 	
 	public boolean hasRelation(String idFrom, String idTo, String agent){
 		return hasRelation(idFrom+idTo,agent);
+	}
+	
+	private void INIT(ArrayList<String> args){
+		String player = args.get(0);
+		this.agents.add(player);
+	}
+	
+	private void INITDONE(){
+		for(int w1 = 1; w1 <= worldCount; ++w1){
+			for(int w2 = 1; w2 <= worldCount; ++w2){
+				for(String a : this.agents){
+					addRelation("w" + w1, "w" + w2, a);
+				}
+			}
+		}
 	}
 	
 	private void STF(ArrayList<String> args, int card){

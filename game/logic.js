@@ -381,16 +381,19 @@ module.exports = function(io, EK) {
 
                         // Send INIT MESSAGE:
                         for (var k in EK.connectedUsers) 
-                          if (EK.connectedUsers[k].name == "Admin") // log to admins
-                            for (var i in EK.connectedUsers)
-                              if (EK.connectedUsers[i].name != "Admin") // Admins themselves do not have cards
-                              {
-                                var tmpHandStr = ""; // append cards to this string.
-                                for (var tmpCard in game.getPlayer(EK.connectedUsers[i]).hand) // player = game.getPlayer(user), then get its hand.
-                                  tmpHandStr = tmpHandStr + " " + game.getPlayer(EK.connectedUsers[i]).hand[tmpCard].name;
-                                io.to(EK.connectedUsers[k].id).emit('message', "INIT" + " " + EK.connectedUsers[i].name + tmpHandStr);
-                              }
-                        // End INIT MESSAGE part.
+                            if (EK.connectedUsers[k].name == "Admin") // log to admins
+                            { 
+                                for (var i in EK.connectedUsers)
+                                  if (EK.connectedUsers[i].name != "Admin") // Admins themselves do not have cards
+                                  {
+                                    var tmpHandStr = ""; // append cards to this string.
+                                    for (var tmpCard in game.getPlayer(EK.connectedUsers[i]).hand) // player = game.getPlayer(user), then get its hand.
+                                      tmpHandStr = tmpHandStr + " " + game.getPlayer(EK.connectedUsers[i]).hand[tmpCard].name;
+                                    io.to(EK.connectedUsers[k].id).emit('message', "INIT" + " " + EK.connectedUsers[i].name + tmpHandStr);
+                                  }
+                                io.to(EK.connectedUsers[k].id).emit('message', "INITDONE");
+                            }
+                            // End INIT MESSAGE part.
                     } else {
                         socket.emit($.GAME.START, {
                             error: 'Could not start game'
