@@ -34,13 +34,11 @@ import logic.Formula;
 public class Model extends MultiGraph implements ViewerListener {
 	
 	private int worldCount;
+	private ArrayList<String> clickedWorlds = new ArrayList<>();
 	private ArrayList<Formula> commonKnowledge;
 	private ArrayList<String> agents;
-
-	private ArrayList<String> messages = new ArrayList<String>();
-	
-	private ArrayList<String> clickedWorlds = new ArrayList<>();
 	private ArrayList<Node> selectedNodes = new ArrayList<>();
+	private ArrayList<String> messages = new ArrayList<>();
 
 	public Model() {
 		super("Arbitrary String #1");
@@ -89,6 +87,7 @@ public class Model extends MultiGraph implements ViewerListener {
 						ArrayList<String> arguments = new ArrayList<String>(Arrays.asList(Arrays.copyOfRange(substrings,1,substrings.length)));
 						System.out.println("New message of type " + type + " with arguments " + arguments.toString());
 						update(type,arguments);
+						System.out.println(arguments);
 					}else{
 						System.err.println("Invalid message: " + message);
 					}
@@ -135,19 +134,14 @@ public class Model extends MultiGraph implements ViewerListener {
 				}
 			}
 		}
-		
+
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
         viewPipe.addSink(new VerboseSink());
         viewPipe.pump();
-		
+            	
         while (true) {
             viewPipe.pump();
-            try {
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				System.err.println("Interrupted");
-			}
         }
 	}
 	
@@ -228,7 +222,6 @@ public class Model extends MultiGraph implements ViewerListener {
 
 	public void addRelation(String idFrom, String idTo, String agent) {
 		//adds a relation for an agent between two worlds
-		//System.out.println("Adding relation " + idTo+idFrom + " for agent " + agent);
 		Edge e = getEdge(idFrom+idTo);
 		if(e == null){
 			//need to add the edge
@@ -237,43 +230,6 @@ public class Model extends MultiGraph implements ViewerListener {
 			ArrayList<String> agents = e.getAttribute("agents");
 			agents.add(agent);
 		}
-	}
-	
-	public void removeRelation(String edgeId, String agent){
-		//remove a relation for an agent between two worlds
-		Edge e = getEdge(edgeId);
-		if(e != null){
-			ArrayList<String> agents = e.getAttribute("agents");
-			if(agents.contains(agent)){
-				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
-				agents.remove(agent);
-				if(agents.isEmpty()){
-					removeEdge(edgeId);
-				}
-				return;
-			}
-		}
-		System.err.println("Tried to remove agent " + agent + "on relation " + edgeId + "while that relation wasn't there!");
-	}
-	
-	public void removeRelation(String idFrom, String idTo, String agent){
-		//remove a relation for an agent between two worlds
-		removeRelation(idFrom+idTo,agent);
-	}
-	
-	public boolean hasRelation(String edgeId, String agent){
-		Edge e = getEdge(edgeId);
-		if(e != null){
-			ArrayList<String> agents = e.getAttribute("agents");
-			return agents.contains(agent);
-		}else{
-			return false;
-		}
-		
-	}
-	
-	public boolean hasRelation(String idFrom, String idTo, String agent){
-		return hasRelation(idFrom+idTo,agent);
 	}
 
 	public ArrayList<String> getAtoms(String node) {
@@ -308,38 +264,10 @@ public class Model extends MultiGraph implements ViewerListener {
 		Iterator<Edge> edges = getEdgeIterator();
 		while (edges.hasNext()) {
 			Edge e = edges.next();
-			//e.setAttribute("ui.label", e.getId() + ": " + e.getAttribute("agents").toString());
 			e.setAttribute("ui.label", "");	
 		}
 		
 		return super.display();
-	}
-	
-	private void STF(ArrayList<String> args, int card){
-		String player = args.get(0);
-		if(args.size() > card && args.get(card).equals("Explode")){
-			Iterator<Node> nodes = getNodeIterator();
-			while(nodes.hasNext()){
-				Node n1 = nodes.next();
-				ArrayList<String> atoms = n1.getAttribute("atoms");
-				if(!atoms.contains("ek"+card)){
-					//node contradicts the new information
-					HashSet<String> toRemove = new HashSet<String>();
-					Iterator<Edge> edges = n1.getEdgeIterator();
-					while(edges.hasNext()){
-						//search for edges that need to be removed
-						Edge e = edges.next();
-						toRemove.add(e.getId());
-					}
-					//actually remove the edges
-					for(String e : toRemove){
-						if(hasRelation(e,player)){
-							removeRelation(e,player);
-						}
-					}
-				}
-			}
-		}
 	}
 	
 	private void update(String type, ArrayList<String> args){
@@ -348,10 +276,6 @@ public class Model extends MultiGraph implements ViewerListener {
 			STF(args,2);
 			STF(args,3);
 		}
-	}
-	
-	public ArrayList<Formula> getCommonKnowledge() {
-		return commonKnowledge;
 	}
 
 	public static void main(String[] args) {
@@ -408,6 +332,79 @@ public class Model extends MultiGraph implements ViewerListener {
 			}
 		}
 		
+	}
+	
+	public void removeRelation(String edgeId, String agent){
+		//remove a relation for an agent between two worlds
+		Edge e = getEdge(edgeId);
+		if(e != null){
+			ArrayList<String> agents = e.getAttribute("agents");
+			if(agents.contains(agent)){
+				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
+				agents.remove(agent);
+				if(agents.isEmpty()){
+					removeEdge(edgeId);
+				}
+				return;
+			}
+		}
+		System.err.println("Tried to remove agent " + agent + "on relation " + edgeId + "while that relation wasn't there!");
+	}
+	
+	public void removeRelation(String idFrom, String idTo, String agent){
+		//remove a relation for an agent between two worlds
+		removeRelation(idFrom+idTo,agent);
+	}
+	
+	public boolean hasRelation(String edgeId, String agent){
+		Edge e = getEdge(edgeId);
+		if(e != null){
+			ArrayList<String> agents = e.getAttribute("agents");
+			return agents.contains(agent);
+		}else{
+			return false;
+		}
+		
+	}
+	
+	public boolean hasRelation(String idFrom, String idTo, String agent){
+		return hasRelation(idFrom+idTo,agent);
+	}
+	
+	private void STF(ArrayList<String> args, int card){
+		String player = args.get(0);
+		if(args.size() > card && args.get(card).equals("Explode")){
+			Iterator<Node> nodes = getNodeIterator();
+			while(nodes.hasNext()){
+				Node n1 = nodes.next();
+				ArrayList<String> atoms = n1.getAttribute("atoms");
+				if(!atoms.contains("ek"+card)){
+					
+					System.out.println("REMOVE");
+					//node contradicts the new information
+					HashSet<String> toRemove = new HashSet<String>();
+					Iterator<Edge> edges = n1.getEdgeIterator();
+					while(edges.hasNext()){
+						System.out.println("REMOVEWHILE");
+						//search for edges that need to be removed
+						Edge e = edges.next();
+						toRemove.add(e.getId());
+					}
+					//actually remove the edges
+					for(String e : toRemove){
+						if(hasRelation(e,player)){
+							System.out.println("REMOVEFOR");
+							removeRelation(e,player);
+						}
+					}
+				}
+			}
+			display();
+		}
+	}
+	
+	public ArrayList<Formula> getCommonKnowledge() {
+		return commonKnowledge;
 	}
 
 	@Override
