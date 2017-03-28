@@ -21,10 +21,10 @@ import javax.swing.JPanel;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
+import org.graphstream.stream.Sink;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
-import org.graphstream.util.VerboseSink;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -87,7 +87,6 @@ public class Model extends MultiGraph implements ViewerListener {
 						ArrayList<String> arguments = new ArrayList<String>(Arrays.asList(Arrays.copyOfRange(substrings,1,substrings.length)));
 						System.out.println("New message of type " + type + " with arguments " + arguments.toString());
 						update(type,arguments);
-						System.out.println(arguments);
 					}else{
 						System.err.println("Invalid message: " + message);
 					}
@@ -107,28 +106,18 @@ public class Model extends MultiGraph implements ViewerListener {
 			e.printStackTrace();
 		}
 		
-		for(int i=0;i<8;++i){
+		for(int i=0;i<4;++i){
 			addNode(getWorldName());
 		}
-		
 		addAtom("w1","ek1");
-		addAtom("w1","ek2");
-		addAtom("w1","ek3");
-		addAtom("w2","ek1");
 		addAtom("w2","ek2");
-		addAtom("w3","ek1");
 		addAtom("w3","ek3");
-		addAtom("w4","ek2");
-		addAtom("w4","ek3");
-		addAtom("w5","ek1");
-		addAtom("w6","ek2");
-		addAtom("w7","ek3");
 		
 		this.agents.add("fuck");
 		this.agents.add("Joost");
 
-		for(int w1=1;w1<=8;++w1){
-			for(int w2=1;w2<=8;++w2){
+		for(int w1=1;w1<=worldCount;++w1){
+			for(int w2=1;w2<=worldCount;++w2){
 				for(String a : agents){
 					addRelation("w"+w1,"w"+w2,a);
 				}
@@ -137,7 +126,7 @@ public class Model extends MultiGraph implements ViewerListener {
 
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
-        viewPipe.addSink(new VerboseSink());
+        viewPipe.addSink(this);
         viewPipe.pump();
             	
         while (true) {
@@ -172,7 +161,6 @@ public class Model extends MultiGraph implements ViewerListener {
 			String line;
 			while((line = in.readLine()) != null)
 			{
-			    System.out.println(line);
 			    String[] args = line.split(" ");
 			    if (args.length == 2)
 			    	addAtom(args[0], args[1]);
@@ -318,7 +306,6 @@ public class Model extends MultiGraph implements ViewerListener {
 				Node n4 = it4.next();
 				if (n3 != null && n4 != null)
 				{
-					System.out.println(n3.getId() + " " + n4.getId());
 					Edge e2 = getEdge(n3.getId() + n4.getId());
 					if (e2 != null && selectedNodes.contains(n3) && selectedNodes.contains(n4))
 					{
@@ -340,7 +327,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(e != null){
 			ArrayList<String> agents = e.getAttribute("agents");
 			if(agents.contains(agent)){
-				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
+				System.out.println("Removing relation " + edgeId + " for agent " + agent);
 				agents.remove(agent);
 				if(agents.isEmpty()){
 					removeEdge(edgeId);
@@ -379,13 +366,10 @@ public class Model extends MultiGraph implements ViewerListener {
 				Node n1 = nodes.next();
 				ArrayList<String> atoms = n1.getAttribute("atoms");
 				if(!atoms.contains("ek"+card)){
-					
-					System.out.println("REMOVE");
 					//node contradicts the new information
 					HashSet<String> toRemove = new HashSet<String>();
 					Iterator<Edge> edges = n1.getEdgeIterator();
 					while(edges.hasNext()){
-						System.out.println("REMOVEWHILE");
 						//search for edges that need to be removed
 						Edge e = edges.next();
 						toRemove.add(e.getId());
@@ -393,13 +377,11 @@ public class Model extends MultiGraph implements ViewerListener {
 					//actually remove the edges
 					for(String e : toRemove){
 						if(hasRelation(e,player)){
-							System.out.println("REMOVEFOR");
 							removeRelation(e,player);
 						}
 					}
 				}
 			}
-			display();
 		}
 	}
 	
