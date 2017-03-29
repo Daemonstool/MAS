@@ -41,6 +41,7 @@ public class Model extends MultiGraph implements ViewerListener {
 	private ArrayList<Node> selectedNodes = new ArrayList<>();
 	private ArrayList<String> messages = new ArrayList<>();
 
+	private int cardsleft = Integer.MAX_VALUE;
 	public Model() {
 		super("Arbitrary String #1");
 		this.worldCount = 0;
@@ -266,11 +267,47 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(type.equals("SH")){
 			SH(); //Throw away all knowledge.
 		}
+	
+		if (type.equals("SS"))
+		{
+			this.cardsleft = Integer.valueOf(args.get(0));
+			switch (cardsleft)
+			{
+				case 1: 
+					removeNode("w2");
+					this.worldCount = 1;
+					this.interConnectAll();
+				case 2:
+					removeNode("w3");
+					this.worldCount = 2;
+					this.interConnectAll();
+				case 3: 
+					removeNode("w4");
+					this.worldCount = 3;
+					this.interConnectAll();
+				default: 
+					this.worldCount = 4;
+					this.interConnectAll();
+			}
+		}
 		
 		// We dont have to check for nopes since the message is not sent anyway when someone card(set) is noped.
 		// Hence it is not processed in the model, therefore there is no gain of knowledge.
 		if(type.equals("NP")){
 			// Nothing ... until we keep track of nope cards in kripke worlds.
+		}
+		
+		if (type.equals("EK"))
+		{
+			if (agents.size() == 2)
+			{
+				System.out.println("Game Over");
+			}
+		}
+		
+		if(type.equals("DF"))
+		{
+			
 		}
 		
 	}
