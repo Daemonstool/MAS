@@ -565,16 +565,7 @@ module.exports = function(io, EK) {
                             var explode = player.removeCardType($.CARD.EXPLODE);
                             var index = Math.floor(Math.random() * (game.drawPile.length));
                             game.drawPile.splice(index, 0, explode);
-							
-							var arrayLength = EK.connectedUsers.length;
-							for (var k in EK.connectedUsers) {
-								
-								if (EK.connectedUsers[k].name == "Admin")
-								{
-									io.to(EK.connectedUsers[k].id).emit('message', "SS" + " " + game.drawPile.length);
-								}
-								//Do something
-							}
+                            
                             
                             state = $.GAME.PLAYER.TURN.DEFUSED;
                         } else {
@@ -582,6 +573,17 @@ module.exports = function(io, EK) {
                             state = $.GAME.PLAYER.TURN.EXPLODED;
                             game.explodePlayer(player);
                         }
+                    }
+                    
+                    var arrayLength = EK.connectedUsers.length;
+                    for (var k in EK.connectedUsers) {
+                        
+                        if (EK.connectedUsers[k].name == "Admin")
+                        {
+                            io.to(EK.connectedUsers[k].id).emit('message', "SS" + " " + game.drawPile.length);
+                        }
+                        //Do something
+                    
                     }
 
                     //Check for a winner

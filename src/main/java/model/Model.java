@@ -288,6 +288,7 @@ public class Model extends MultiGraph implements ViewerListener {
 					}
 					this.worldCount = 1;
 					this.interConnectAll();
+					break;
 				case 2:
 					try 
 					{ 
@@ -299,6 +300,7 @@ public class Model extends MultiGraph implements ViewerListener {
 					}
 					this.worldCount = 2;
 					this.interConnectAll();
+					break;
 				case 3: 
 					try 
 					{ 
@@ -310,6 +312,7 @@ public class Model extends MultiGraph implements ViewerListener {
 					}
 					this.worldCount = 3;
 					this.interConnectAll();
+					break;
 				
 			}
 		}
