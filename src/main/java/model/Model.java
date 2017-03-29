@@ -525,6 +525,15 @@ public class Model extends MultiGraph implements ViewerListener {
 		addRelation(nodeName, nodeName, agent);
 	}
 	
+	
+	//CHECK THIS
+	private void extendUncertainty(String agent, Node n, int size){
+		String nodeName1 = n.getId();
+		String nodeName2 = "w" + (Integer.parseInt(nodeName1.substring(1,nodeName1.length())) + 1);
+		addRelation(nodeName1, nodeName2, agent);
+		
+	}
+	
 	private void drawCard(ArrayList<String> args){
 		// TODO: Update knowledge about hands
 		// String player = args.get(0);
@@ -533,24 +542,44 @@ public class Model extends MultiGraph implements ViewerListener {
 		// Shift knowledge about EK to next world for each agent.
 		ArrayList<Node> shiftNodes = new ArrayList<Node>();
 		ArrayList<String> shiftAgents = new ArrayList<String>();
-		for(String a : this.agents) {
+		
+		ArrayList<Node> extendNodes = new ArrayList<Node>();
+		ArrayList<String> extendAgents = new ArrayList<String>();
+		ArrayList<Integer> extendSize = new ArrayList<>();
+		
+		for (String a : this.agents) {
 			Iterator<Node> nodes = getNodeIterator();
 			
 			
-			while(nodes.hasNext()){
+			while (nodes.hasNext()){
 				//Check for each node if it only has a relation to itself for the agent: is reflexive
 				Node n1 = nodes.next();
 				//This is not true for w4, and w1 gets already processed by DF and EK.
-				if( canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w4") || n1.getId().equals("w1"))){
+				if (canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w4") && !n1.getId().equals("w1"))){
 					//actually shift worlds for EK
 					shiftNodes.add(n1);
 					shiftAgents.add(a);
 				}
+				
+				
+				for (int i = worldCount; i >= 1; --i){
+					if (canAccessWorlds(a, n1) == i && (n1.getId().equals("w4"))){
+						extendNodes.add(n1);
+						extendAgents.add(a);
+						extendSize.add(i);
+					}
+				}
+				
 			}
 		}
 		
 		for(int i = 0; i < shiftNodes.size(); ++i)
 			shiftWorldsForEK(shiftAgents.get(i), shiftNodes.get(i));
+		
+		//CHECK THIS
+		for(int i = 0; i < extendNodes.size(); ++i)
+			extendUncertainty(extendAgents.get(i), extendNodes.get(i), extendSize.get(i));
+		
 		
 		updateLabels();
 	}
