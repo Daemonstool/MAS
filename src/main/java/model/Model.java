@@ -262,9 +262,22 @@ public class Model extends MultiGraph implements ViewerListener {
 			INITDONE();
 		}
 		
+<<<<<<< HEAD
 		if(type.equals("DC")){
 			drawCard(args);
 		}
+=======
+		if(type.equals("SH")){
+			SH(); //Throw away all knowledge.
+		}
+		
+		// We dont have to check for nopes since the message is not sent anyway when someone card(set) is noped.
+		// Hence it is not processed in the model, therefore there is no gain of knowledge.
+		if(type.equals("NP")){
+			// Nothing ... until we keep track of nope cards in kripke worlds.
+		}
+		
+>>>>>>> master
 	}
 
 	public static void main(String[] args) {
@@ -364,14 +377,26 @@ public class Model extends MultiGraph implements ViewerListener {
 		this.agents.add(player);
 	}
 	
-	private void INITDONE(){
+	
+	private void interConnectAll(){
 		for(int w1 = 1; w1 <= worldCount; ++w1){
 			for(int w2 = 1; w2 <= worldCount; ++w2){
 				for(String a : this.agents){
-					addRelation("w" + w1, "w" + w2, a);
+					if (!hasRelation("w" + w1, "w"+ w2, a)) {
+						addRelation("w" + w1, "w" + w2, a);
+					}
 				}
 			}
 		}
+	}
+	
+	private void INITDONE(){
+		interConnectAll();
+	}
+	
+	
+	private void SH(){
+		interConnectAll();
 	}
 	
 	private void STF(ArrayList<String> args, int card){
@@ -393,12 +418,26 @@ public class Model extends MultiGraph implements ViewerListener {
 					//actually remove the edges
 					for(String e : toRemove){
 						if(hasRelation(e,player)){
-							removeRelation(e,player);
+							removeRelation(e, player);
 						}
 					}
 				}
 			}
 		}
+		updateLabels();
+	}
+	
+	public void updateLabels() 
+	{
+		Iterator<Node> it = super.getNodeIterator();
+		
+		while (it.hasNext())
+		{
+			Node n = it.next();
+			buttonPushed(n.getId());
+			buttonPushed(n.getId());
+		}
+		
 	}
 	
 	private boolean hasRelation(String agent, Node node){
