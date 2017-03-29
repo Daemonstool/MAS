@@ -249,11 +249,12 @@ public class Model extends MultiGraph implements ViewerListener {
 		return super.display();
 	}
 	
+	// e.g.: removes all but w4w4
 	private void removeRelationsForAgentsExcept(String agent, Node n)
 	{
 		for(int w1 = 1; w1 <= worldCount; ++w1){
 			for(int w2 = 1; w2 <= worldCount; ++w2){
-				if (hasRelation("w" + w1, "w"+ w2, agent) && !n.equals(getNode("w" + w1)) && !n.equals(getNode("w" + w2))) {
+				if (hasRelation("w" + w1, "w"+ w2, agent) && !(n.equals(getNode("w" + w1)) && n.equals(getNode("w" + w2)))) {
 						removeRelation("w" + w1, "w" + w2, agent);
 				}
 			}
@@ -262,7 +263,12 @@ public class Model extends MultiGraph implements ViewerListener {
 	
 	private void update(String type, ArrayList<String> args){
 		if(type.equals("STF")){
-			if ( STF(args,1) || STF(args,2) || STF(args, 3)){
+			boolean ek = false;
+			for (int idx = 0; idx != 3; ++idx)
+				if ( STF(args,idx))
+					ek = true;
+			
+			if (!ek){
 				//only w4 is true
 				removeRelationsForAgentsExcept(args.get(0), getNode("w4"));
 			}
@@ -287,6 +293,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		if (type.equals("SS"))
 		{
 			this.cardsleft = Integer.valueOf(args.get(0));
+			//System.out.println(cardsleft + " = cardsleft");
 			switch (cardsleft)
 			{
 				case 1: 
@@ -346,6 +353,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		{
 			
 		}
+		updateLabels();
 		
 	}
 
@@ -495,7 +503,6 @@ public class Model extends MultiGraph implements ViewerListener {
 				}
 			}
 		}
-		updateLabels();
 		return EK;
 	}
 	
@@ -561,25 +568,14 @@ public class Model extends MultiGraph implements ViewerListener {
 		addRelation(nodeName, nodeName, agent);
 	}
 	
-	/* private void interConnectAll(){
-		for(int w1 = 1; w1 <= worldCount; ++w1){
-			for(int w2 = 1; w2 <= worldCount; ++w2){
-				for(String a : this.agents){
-					if (!hasRelation("w" + w1, "w"+ w2, a)) {
-						addRelation("w" + w1, "w" + w2, a);
-					}
-				}
-			}
-		}
-	}*/
-	
 	//Interconnects relations of w4 up to w (nConnected + 1)
 	private void extendUncertainty(String agent, int nConnected){
-		System.out.println("nConnected: " + nConnected);
-		for (int w1 = worldCount; w1 > (worldCount - nConnected); --w1)
-			for (int w2 = worldCount; w2 > (worldCount - nConnected); --w2)
-				if (!hasRelation("w" + w1, "w" + w2, agent))
+		for (int w1 = worldCount; w1 >= (worldCount - nConnected); --w1)
+			for (int w2 = worldCount; w2 >= (worldCount - nConnected); --w2)
+				if (!hasRelation("w" + w1, "w" + w2, agent)){
 					addRelation("w" + w1, "w" + w2, agent);
+					//System.out.println("Adding relation" + "w"+w1+"w"+w2 + "for agent " + agent);
+				}
 	}
 	
 	private void drawCard(ArrayList<String> args){
@@ -591,7 +587,6 @@ public class Model extends MultiGraph implements ViewerListener {
 		ArrayList<Node> shiftNodes = new ArrayList<Node>();
 		ArrayList<String> shiftAgents = new ArrayList<String>();
 		
-		ArrayList<Node> extendNodes = new ArrayList<Node>();
 		ArrayList<String> extendAgents = new ArrayList<String>();
 		ArrayList<Integer> extendSize = new ArrayList<>();
 		
@@ -611,7 +606,7 @@ public class Model extends MultiGraph implements ViewerListener {
 				}
 				
 				
-				for (int i = worldCount; i >= 1; --i){
+				for (int i = (worldCount - 1) ; i >= 1; --i){
 					if (canAccessWorlds(a, n1) == i && (n1.getId().equals("w4"))){
 						extendAgents.add(a);
 						extendSize.add(i);
@@ -624,12 +619,11 @@ public class Model extends MultiGraph implements ViewerListener {
 		for(int i = 0; i < shiftNodes.size(); ++i)
 			shiftWorldsForEK(shiftAgents.get(i), shiftNodes.get(i));
 		
-		//CHECK THIS
 		for(int i = 0; i < extendSize.size(); ++i)
 			extendUncertainty(extendAgents.get(i), extendSize.get(i));
 		
 		
-		updateLabels();
+		
 	}
 	
 	public ArrayList<Formula> getCommonKnowledge() {
