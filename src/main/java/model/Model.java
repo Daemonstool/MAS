@@ -249,11 +249,23 @@ public class Model extends MultiGraph implements ViewerListener {
 		return super.display();
 	}
 	
+	private void removeRelationsForAgentsExcept(String agent, Node n)
+	{
+		for(int w1 = 1; w1 <= worldCount; ++w1){
+			for(int w2 = 1; w2 <= worldCount; ++w2){
+				if (hasRelation("w" + w1, "w"+ w2, agent) && !n.equals(getNode("w" + w1)) && !n.equals(getNode("w" + w2))) {
+						removeRelation("w" + w1, "w" + w2, agent);
+				}
+			}
+		}
+	}
+	
 	private void update(String type, ArrayList<String> args){
 		if(type.equals("STF")){
-			STF(args,1);
-			STF(args,2);
-			STF(args,3);
+			if ( STF(args,1) || STF(args,2) || STF(args, 3)){
+				//only w4 is true
+				removeRelationsForAgentsExcept(args.get(0), getNode("w4"));
+			}
 		}
 		
 		if(type.equals("INIT")){
@@ -281,17 +293,21 @@ public class Model extends MultiGraph implements ViewerListener {
 					removeNode("w2");
 					this.worldCount = 1;
 					this.interConnectAll();
+					break;
 				case 2:
 					removeNode("w3");
 					this.worldCount = 2;
 					this.interConnectAll();
+					break;
 				case 3: 
 					removeNode("w4");
 					this.worldCount = 3;
 					this.interConnectAll();
+					break;
 				default: 
 					this.worldCount = 4;
 					this.interConnectAll();
+					break;
 			}
 		}
 		
@@ -435,10 +451,12 @@ public class Model extends MultiGraph implements ViewerListener {
 		interConnectAll();
 	}
 	
-	private void STF(ArrayList<String> args, int card){
+	private boolean STF(ArrayList<String> args, int card){
 		String player = args.get(0);
+		boolean EK = false;
 		if(args.size() > card && args.get(card).equals("Explode")){
 			Iterator<Node> nodes = getNodeIterator();
+			EK = true;
 			while(nodes.hasNext()){
 				Node n1 = nodes.next();
 				ArrayList<String> atoms = n1.getAttribute("atoms");
@@ -461,6 +479,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			}
 		}
 		updateLabels();
+		return EK;
 	}
 	
 	
@@ -525,13 +544,25 @@ public class Model extends MultiGraph implements ViewerListener {
 		addRelation(nodeName, nodeName, agent);
 	}
 	
+	/* private void interConnectAll(){
+		for(int w1 = 1; w1 <= worldCount; ++w1){
+			for(int w2 = 1; w2 <= worldCount; ++w2){
+				for(String a : this.agents){
+					if (!hasRelation("w" + w1, "w"+ w2, a)) {
+						addRelation("w" + w1, "w" + w2, a);
+					}
+				}
+			}
+		}
+	}*/
 	
-	//CHECK THIS
-	private void extendUncertainty(String agent, Node n, int size){
-		String nodeName1 = n.getId();
-		String nodeName2 = "w" + (Integer.parseInt(nodeName1.substring(1,nodeName1.length())) + 1);
-		addRelation(nodeName1, nodeName2, agent);
-		
+	//Interconnects relations of w4 up to w (nConnected + 1)
+	private void extendUncertainty(String agent, int nConnected){
+		System.out.println("nConnected: " + nConnected);
+		for (int w1 = worldCount; w1 > (worldCount - nConnected); --w1)
+			for (int w2 = worldCount; w2 > (worldCount - nConnected); --w2)
+				if (!hasRelation("w" + w1, "w" + w2, agent))
+					addRelation("w" + w1, "w" + w2, agent);
 	}
 	
 	private void drawCard(ArrayList<String> args){
@@ -564,7 +595,6 @@ public class Model extends MultiGraph implements ViewerListener {
 				
 				for (int i = worldCount; i >= 1; --i){
 					if (canAccessWorlds(a, n1) == i && (n1.getId().equals("w4"))){
-						extendNodes.add(n1);
 						extendAgents.add(a);
 						extendSize.add(i);
 					}
@@ -577,8 +607,8 @@ public class Model extends MultiGraph implements ViewerListener {
 			shiftWorldsForEK(shiftAgents.get(i), shiftNodes.get(i));
 		
 		//CHECK THIS
-		for(int i = 0; i < extendNodes.size(); ++i)
-			extendUncertainty(extendAgents.get(i), extendNodes.get(i), extendSize.get(i));
+		for(int i = 0; i < extendSize.size(); ++i)
+			extendUncertainty(extendAgents.get(i), extendSize.get(i));
 		
 		
 		updateLabels();
