@@ -278,20 +278,39 @@ public class Model extends MultiGraph implements ViewerListener {
 			switch (cardsleft)
 			{
 				case 1: 
-					removeNode("w2");
+					try 
+					{ 
+						removeNode("w2");
+					} 
+					catch (Exception e)
+					{
+						System.err.println("Already removed");
+					}
 					this.worldCount = 1;
 					this.interConnectAll();
 				case 2:
-					removeNode("w3");
+					try 
+					{ 
+						removeNode("w3");
+					} 
+					catch (Exception e)
+					{
+						System.err.println("Already removed");
+					}
 					this.worldCount = 2;
 					this.interConnectAll();
 				case 3: 
-					removeNode("w4");
+					try 
+					{ 
+						removeNode("w4");
+					} 
+					catch (Exception e)
+					{
+						System.err.println("Already removed");
+					}
 					this.worldCount = 3;
 					this.interConnectAll();
-				default: 
-					this.worldCount = 4;
-					this.interConnectAll();
+				
 			}
 		}
 		
@@ -540,8 +559,8 @@ public class Model extends MultiGraph implements ViewerListener {
 			while(nodes.hasNext()){
 				//Check for each node if it only has a relation to itself for the agent: is reflexive
 				Node n1 = nodes.next();
-				//This is not true for w4, and w1 gets already processed by DF and EK.
-				if( canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w4") || n1.getId().equals("w1"))){
+				//This is not true for w4, and w1 gets already processed by SS.
+				if( canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w4") && !n1.getId().equals("w1"))){
 					//actually shift worlds for EK
 					shiftNodes.add(n1);
 					shiftAgents.add(a);

@@ -534,9 +534,7 @@ module.exports = function(io, EK) {
                             
                             if (EK.connectedUsers[k].name == "Admin")
                             {
-                                io.to(EK.connectedUsers[k].id).emit('message', "DC" + " " + player.user.name + " " + drawn[0].name);
-                                io.to(EK.connectedUsers[k].id).emit('message', "SS" + " " + game.drawPile.length);
-                                
+                                io.to(EK.connectedUsers[k].id).emit('message', "DC" + " " + player.user.name + " " + drawn[0].name);                                
                             }
                             //Do something
                         }
@@ -567,6 +565,16 @@ module.exports = function(io, EK) {
                             var explode = player.removeCardType($.CARD.EXPLODE);
                             var index = Math.floor(Math.random() * (game.drawPile.length));
                             game.drawPile.splice(index, 0, explode);
+							
+							var arrayLength = EK.connectedUsers.length;
+							for (var k in EK.connectedUsers) {
+								
+								if (EK.connectedUsers[k].name == "Admin")
+								{
+									io.to(EK.connectedUsers[k].id).emit('message', "SS" + " " + game.drawPile.length);
+								}
+								//Do something
+							}
                             
                             state = $.GAME.PLAYER.TURN.DEFUSED;
                         } else {
