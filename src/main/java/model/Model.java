@@ -418,6 +418,20 @@ public class Model extends MultiGraph implements ViewerListener {
 				}
 			}
 		}
+		updateLabels();
+	}
+	
+	public void updateLabels() 
+	{
+		Iterator<Node> it = super.getNodeIterator();
+		
+		while (it.hasNext())
+		{
+			Node n = it.next();
+			buttonPushed(n.getId());
+			buttonPushed(n.getId());
+		}
+		
 	}
 	
 	public ArrayList<Formula> getCommonKnowledge() {
