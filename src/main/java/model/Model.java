@@ -21,7 +21,6 @@ import javax.swing.JPanel;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
-import org.graphstream.stream.Sink;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
@@ -29,20 +28,21 @@ import org.graphstream.ui.view.ViewerPipe;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import logic.Formula;
 
 public class Model extends MultiGraph implements ViewerListener {
 	
 	private int worldCount;
-	private ArrayList<String> clickedWorlds = new ArrayList<>();
+	private ArrayList<String> clickedWorlds = new ArrayList<String>();
 	private ArrayList<String> agents;
-	private ArrayList<Node> selectedNodes = new ArrayList<>();
-	private ArrayList<String> messages = new ArrayList<>();
+	private ArrayList<Node> selectedNodes = new ArrayList<Node>();
+	private ArrayList<String> messages = new ArrayList<String>();
+	private HashSet<String> atoms = new HashSet<String>();//set of all unique atoms in the model. For each atom each node must have a truth assignment
 
 	public Model() {
 		super("Arbitrary String #1");
 		this.worldCount = 0;
 		this.agents = new ArrayList<String>();
+		this.atoms = new HashSet<String>();
 
 		Socket socket;
 		try {
@@ -104,23 +104,11 @@ public class Model extends MultiGraph implements ViewerListener {
 			e.printStackTrace();
 		}
 		
-		for(int i=0;i<4;++i){
-			addNode(getWorldName());
-		}
-		addAtom("w1","ek1");
-		addAtom("w2","ek2");
-		addAtom("w3","ek3");
+		atoms.add("ek1");
+		atoms.add("ek2");
+		atoms.add("ek3");
 		
-		this.agents.add("fuck");
-		this.agents.add("Joost");
-
-		for(int w1=1;w1<=worldCount;++w1){
-			for(int w2=1;w2<=worldCount;++w2){
-				for(String a : agents){
-					addRelation("w"+w1,"w"+w2,a);
-				}
-			}
-		}
+		initWorlds(0,new ArrayList<String>(atoms));
 
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
@@ -132,6 +120,26 @@ public class Model extends MultiGraph implements ViewerListener {
         }
 	}
 	
+	private void initWorlds(int idx, ArrayList<String> atoms){
+		//creates all worlds to have all combinations of atoms present
+		ArrayList<String> negation = new ArrayList<String>(atoms);
+		negation.remove(idx);
+		if(idx == atoms.size()-1){
+			//base case, add worlds
+			String id = addNode("").getId();
+			for(String a : atoms){
+				addAtom(id,a);
+			}
+			id = addNode("").getId();
+			for(String a : negation){
+				addAtom(id,a);
+			}
+		}else{
+			initWorlds(idx+1,atoms);
+			initWorlds(idx,negation);
+		}
+	}
+	
 	private String getWorldName(){
 		//generate the next world id
 		return "w" + ++worldCount;
@@ -139,16 +147,20 @@ public class Model extends MultiGraph implements ViewerListener {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Node addNode(String id) {
-		Node n = super.addNode(id);
+	public Node addNode(String dump) {
+		Node n = super.addNode(getWorldName());
 		n.setAttribute("atoms", new ArrayList<String>());
 		return n;
 	}
 
 	public void addAtom(String node, String atom) {
 		Node n = getNode(node);
-		ArrayList<String> atoms = n.getAttribute("atoms");
-		atoms.add(atom);
+		ArrayList<String> nodeAtoms = n.getAttribute("atoms");
+		nodeAtoms.add(atom);
+		if(!this.atoms.contains(atom)){
+			//update the set of all atoms in the model
+			this.atoms.add(atom);
+		}
 	}
 	
 	public void constructFromFile(String s)
@@ -221,6 +233,21 @@ public class Model extends MultiGraph implements ViewerListener {
 	public ArrayList<String> getAtoms(String node) {
 		return getNode(node).getAttribute("atoms");
 	}
+	
+	private String constructNodeLabel(Node n){
+		ArrayList<String> nodeAtoms = n.getAttribute("atoms");
+		StringBuilder ss = new StringBuilder(n.getId() + ": ");
+		for(String a : atoms){
+			if(nodeAtoms.contains(a)){
+				ss.append(a);
+			}else{
+				ss.append("¬" + a);
+			}
+			ss.append(", ");
+		}
+		ss.delete(ss.length()-2,ss.length());
+		return ss.toString();
+	}
 
 	@Override
 	public Viewer display() {
@@ -245,7 +272,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		while (nodes.hasNext()) {
 			Node n = nodes.next();
 			n.addAttribute("ui.color", new Color(0, 0, 0));
-			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
+			n.setAttribute("ui.label", constructNodeLabel(n));
 		}
 		Iterator<Edge> edges = getEdgeIterator();
 		while (edges.hasNext()) {
@@ -261,11 +288,15 @@ public class Model extends MultiGraph implements ViewerListener {
 			STF(args,1);
 			STF(args,2);
 			STF(args,3);
+		}else if(type.equals("INIT")){
+			String agent = args.get(0);
+			agents.add(agent);
+			for(int w1=1;w1<=worldCount;++w1){
+				for(int w2=1;w2<=worldCount;++w2){
+					addRelation("w"+w1,"w"+w2,agent);
+				}
+			}
 		}
-	}
-
-	public static void main(String[] args) {
-		new Model();
 	}
 
 	@Override
@@ -277,8 +308,6 @@ public class Model extends MultiGraph implements ViewerListener {
 	@Override
 	public void buttonPushed(String id) {
 		// TODO Auto-generated method stub
-		
-		Iterator<Edge> it = getNode(id).getEachEdge().iterator();
 		
 		if (selectedNodes.contains(getNode(id)))
 		{
@@ -387,5 +416,9 @@ public class Model extends MultiGraph implements ViewerListener {
 	public void buttonReleased(String id) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public static void main(String[] args) {
+		new Model();
 	}
 }
