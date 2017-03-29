@@ -422,6 +422,27 @@ public class Model extends MultiGraph implements ViewerListener {
 		updateLabels();
 	}
 	
+	
+	/* Checks whether how much worlds an agent can reach given a world */
+	private int canAccessWorlds(String agent, Node n)
+	{
+		Iterator<Edge> it =  n.getEachLeavingEdge().iterator();
+		
+		int accessCount = 0;
+		while (it.hasNext())
+		{
+			Edge e = it.next();
+			ArrayList<String> agents = e.getAttribute("agents");
+			
+			if (agents.contains(agent))
+			{
+				++accessCount;
+			}
+		}
+		
+		return accessCount;
+		
+	}
 
 	private void canAccessWorlds(String agent)
 	{	
