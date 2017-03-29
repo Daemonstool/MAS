@@ -28,6 +28,12 @@ import org.graphstream.ui.view.ViewerPipe;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import logic.And;
+import logic.Atom;
+import logic.CommonKnowledge;
+import logic.Formula;
+import logic.Iff;
+import logic.Not;
 
 public class Model extends MultiGraph implements ViewerListener {
 	
@@ -37,6 +43,7 @@ public class Model extends MultiGraph implements ViewerListener {
 	private ArrayList<Node> selectedNodes = new ArrayList<Node>();
 	private ArrayList<String> messages = new ArrayList<String>();
 	private HashSet<String> atoms = new HashSet<String>();//set of all unique atoms in the model. For each atom each node must have a truth assignment
+	private ArrayList<CommonKnowledge> CK = new ArrayList<CommonKnowledge>();
 
 	public Model() {
 		super("Arbitrary String #1");
@@ -104,9 +111,17 @@ public class Model extends MultiGraph implements ViewerListener {
 			e.printStackTrace();
 		}
 		
-		atoms.add("ek1");
-		atoms.add("ek2");
-		atoms.add("ek3");
+		this.atoms.add("ek1");
+		this.atoms.add("ek2");
+		this.atoms.add("ek3");
+		
+		this.CK.add(new CommonKnowledge(new Iff(new Atom("ek1"),new And(new Not(new Atom("ek2")),new Not(new Atom("ek3"))))));
+		this.CK.add(new CommonKnowledge(new Iff(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3"))))));
+		this.CK.add(new CommonKnowledge(new Iff(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2"))))));
+		
+		for(CommonKnowledge f : this.CK){
+			System.out.println(f.pprint());
+		}
 		
 		initWorlds(0,new ArrayList<String>(atoms));
 

@@ -7,6 +7,10 @@ import org.graphstream.graph.Node;
 public class CommonKnowledge implements Formula {
 	
 	private Formula f;
+	
+	public CommonKnowledge(Formula f){
+		this.f = f;
+	}
 
 	public boolean evaluate(Node n) {
 		Iterator<Node> nodes = n.getBreadthFirstIterator();
