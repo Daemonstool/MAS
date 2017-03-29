@@ -21,7 +21,6 @@ import javax.swing.JPanel;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
-import org.graphstream.stream.Sink;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
@@ -29,7 +28,9 @@ import org.graphstream.ui.view.ViewerPipe;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import logic.Atom;
 import logic.Formula;
+import logic.Knows;
 
 public class Model extends MultiGraph implements ViewerListener {
 	
@@ -262,11 +263,10 @@ public class Model extends MultiGraph implements ViewerListener {
 			INITDONE();
 		}
 		
-<<<<<<< HEAD
 		if(type.equals("DC")){
 			drawCard(args);
 		}
-=======
+
 		if(type.equals("SH")){
 			SH(); //Throw away all knowledge.
 		}
@@ -276,8 +276,6 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(type.equals("NP")){
 			// Nothing ... until we keep track of nope cards in kripke worlds.
 		}
-		
->>>>>>> master
 	}
 
 	public static void main(String[] args) {
@@ -427,6 +425,46 @@ public class Model extends MultiGraph implements ViewerListener {
 		updateLabels();
 	}
 	
+	
+	/* Checks whether how much worlds an agent can reach given a world */
+	private int canAccessWorlds(String agent, Node n)
+	{
+		Iterator<Edge> it =  n.getEachLeavingEdge().iterator();
+		
+		int accessCount = 0;
+		while (it.hasNext())
+		{
+			Edge e = it.next();
+			ArrayList<String> agents = e.getAttribute("agents");
+			
+			if (agents.contains(agent))
+			{
+				++accessCount;
+			}
+		}
+		
+		return accessCount;
+		
+	}
+
+	private void canAccessWorlds(String agent)
+	{	
+		Iterator<Node> nodes = getNodeIterator();
+		while (nodes.hasNext())
+		{
+			Node n = nodes.next();
+			ArrayList<String> atoms = n.getAttribute("atoms");
+			StringBuilder sb = new StringBuilder();
+			for (String s : atoms)
+			{
+				Formula f = new Knows(new Atom(s),agent);
+				f.evaluate(n);
+				sb.append(s);
+			}
+			System.out.println("Agent: " + agent + " can access " + n.getId() + " with " + sb.toString());
+		}
+	}
+	
 	public void updateLabels() 
 	{
 		Iterator<Node> it = super.getNodeIterator();
@@ -440,16 +478,13 @@ public class Model extends MultiGraph implements ViewerListener {
 		
 	}
 	
-	private boolean hasRelation(String agent, Node node){
-		return true;
-	}
 	
-	private boolean isReflexive(String agent, Node node){
-		return true;
-	}
 	
-	private void shiftWorldsForEK(){
-		//shift em :)
+	private void shiftWorldsForEK(String agent, Node n){
+		String nodeName = n.getId();
+		removeRelation(nodeName, nodeName, agent);
+		nodeName = "w" + (Integer.parseInt(nodeName.substring(1,nodeName.length())) - 1);
+		addRelation(nodeName, nodeName, agent);
 	}
 	
 	private void drawCard(ArrayList<String> args){
@@ -458,6 +493,8 @@ public class Model extends MultiGraph implements ViewerListener {
 		// String card = args.get(1);
 		
 		// Shift knowledge about EK to next world for each agent.
+		ArrayList<Node> shiftNodes = new ArrayList<Node>();
+		ArrayList<String> shiftAgents = new ArrayList<String>();
 		for(String a : this.agents) {
 			Iterator<Node> nodes = getNodeIterator();
 			
@@ -465,15 +502,19 @@ public class Model extends MultiGraph implements ViewerListener {
 			while(nodes.hasNext()){
 				//Check for each node if it only has a relation to itself for the agent: is reflexive
 				Node n1 = nodes.next();
-				//TODO write both methods below (hasRelation is an overloaded version for an node)
-				if( isReflexive(a, n1) && !hasRelation(a, n1)){
+				//This is not true for w4, and w1 gets already processed by DF and EK.
+				if( canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w4") || n1.getId().equals("w1"))){
 					//actually shift worlds for EK
-					shiftWorldsForEK();
+					shiftNodes.add(n1);
+					shiftAgents.add(a);
 				}
 			}
-			
 		}
 		
+		for(int i = 0; i < shiftNodes.size(); ++i)
+			shiftWorldsForEK(shiftAgents.get(i), shiftNodes.get(i));
+		
+		updateLabels();
 	}
 	
 	public ArrayList<Formula> getCommonKnowledge() {
