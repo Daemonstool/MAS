@@ -21,7 +21,6 @@ import javax.swing.JPanel;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
-import org.graphstream.stream.Sink;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
@@ -29,7 +28,9 @@ import org.graphstream.ui.view.ViewerPipe;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import logic.Atom;
 import logic.Formula;
+import logic.Knows;
 
 public class Model extends MultiGraph implements ViewerListener {
 	
@@ -419,6 +420,25 @@ public class Model extends MultiGraph implements ViewerListener {
 			}
 		}
 		updateLabels();
+	}
+	
+
+	private void canAccessWorlds(String agent)
+	{	
+		Iterator<Node> nodes = getNodeIterator();
+		while (nodes.hasNext())
+		{
+			Node n = nodes.next();
+			ArrayList<String> atoms = n.getAttribute("atoms");
+			StringBuilder sb = new StringBuilder();
+			for (String s : atoms)
+			{
+				Formula f = new Knows(new Atom(s),agent);
+				f.evaluate(n);
+				sb.append(s);
+			}
+			System.out.println("Agent: " + agent + " can access " + n.getId() + " with " + sb.toString());
+		}
 	}
 	
 	public void updateLabels() 
