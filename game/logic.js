@@ -381,16 +381,19 @@ module.exports = function(io, EK) {
 
                         // Send INIT MESSAGE:
                         for (var k in EK.connectedUsers) 
-                          if (EK.connectedUsers[k].name == "Admin") // log to admins
-                            for (var i in EK.connectedUsers)
-                              if (EK.connectedUsers[i].name != "Admin") // Admins themselves do not have cards
-                              {
-                                var tmpHandStr = ""; // append cards to this string.
-                                for (var tmpCard in game.getPlayer(EK.connectedUsers[i]).hand) // player = game.getPlayer(user), then get its hand.
-                                  tmpHandStr = tmpHandStr + " " + game.getPlayer(EK.connectedUsers[i]).hand[tmpCard].name;
-                                io.to(EK.connectedUsers[k].id).emit('message', "INIT" + " " + EK.connectedUsers[i].name + tmpHandStr);
-                              }
-                        // End INIT MESSAGE part.
+                            if (EK.connectedUsers[k].name == "Admin") // log to admins
+                            { 
+                                for (var i in EK.connectedUsers)
+                                  if (EK.connectedUsers[i].name != "Admin") // Admins themselves do not have cards
+                                  {
+                                    var tmpHandStr = ""; // append cards to this string.
+                                    for (var tmpCard in game.getPlayer(EK.connectedUsers[i]).hand) // player = game.getPlayer(user), then get its hand.
+                                      tmpHandStr = tmpHandStr + " " + game.getPlayer(EK.connectedUsers[i]).hand[tmpCard].name;
+                                    io.to(EK.connectedUsers[k].id).emit('message', "INIT" + " " + EK.connectedUsers[i].name + tmpHandStr);
+                                  }
+                                io.to(EK.connectedUsers[k].id).emit('message', "INITDONE");
+                            }
+                            // End INIT MESSAGE part.
                     } else {
                         socket.emit($.GAME.START, {
                             error: 'Could not start game'
@@ -525,6 +528,17 @@ module.exports = function(io, EK) {
                         //Make player draw a card and if it is an explode then remove a defuse
                         //If player has no defuse then player is out
                         var drawn = game.drawCards(player, 1);
+                        
+                        var arrayLength = EK.connectedUsers.length;
+                        for (var k in EK.connectedUsers) {
+                            
+                            if (EK.connectedUsers[k].name == "Admin")
+                            {
+                                io.to(EK.connectedUsers[k].id).emit('message', "DC" + " " + player.user.name + " " + drawn[0].name);                                
+                            }
+                            //Do something
+                        }
+
                         socket.emit($.GAME.PLAYER.DRAW, {
                             game: game.sanitize(),
                             cards: drawn,
@@ -552,12 +566,24 @@ module.exports = function(io, EK) {
                             var index = Math.floor(Math.random() * (game.drawPile.length));
                             game.drawPile.splice(index, 0, explode);
                             
+                            
                             state = $.GAME.PLAYER.TURN.DEFUSED;
                         } else {
                             //Player exploded
                             state = $.GAME.PLAYER.TURN.EXPLODED;
                             game.explodePlayer(player);
                         }
+                    }
+                    
+                    var arrayLength = EK.connectedUsers.length;
+                    for (var k in EK.connectedUsers) {
+                        
+                        if (EK.connectedUsers[k].name == "Admin")
+                        {
+                            io.to(EK.connectedUsers[k].id).emit('message', "SS" + " " + game.drawPile.length) + " " + game.playerAliveCount();
+                        }
+                        //Do something
+                    
                     }
 
                     //Check for a winner
@@ -832,22 +858,15 @@ module.exports = function(io, EK) {
 						var cards2 = EK.pendingSets[data.setId].set.cards;
 						var cardset = "" 
 						for (var k in cards2)
-						{
-							console.log(EK.pendingSets[data.setId].set.cards[k].name);
 							cardset = cardset + EK.pendingSets[data.setId].set.cards[k].name + " ";
-						}
 						
 						cardset = cardset + EK.pendingSets[data.setId].set.nopeAmount;
 						
 						var arrayLength = EK.connectedUsers.length;
-						for (var k in EK.connectedUsers) {
-							
+						for (var k in EK.connectedUsers)
 							if (EK.connectedUsers[k].name == "Admin")
-							{
 								io.to(EK.connectedUsers[k].id).emit('message', "NP" + " " + player.user.name + " " + cardset);
-							}
-							//Do something
-						}
+
 
             var cardSet = new CardSet(player, [card]);
             cardSet.effectPlayed = true;
@@ -1560,11 +1579,17 @@ module.exports = function(io, EK) {
         }
         
         if (pending.set.nopePlayed) {
+            //for (var k in EK.connectedUsers) 
+            //    if (EK.connectedUsers[k].name == "Admin") // log to admins
+            //        io.to(EK.connectedUsers[k].id).emit('message', "NPINIT");
+            
             //Poll the set
             EK.pendingSets[playedSet.id].set.nopePlayed = false;
             setTimeout(function() {
                 checkNopes(pending.set, data, socket, game);
-            }, game.nopeTime);
+                }, game.nopeTime);
+            
+
         } else {
             
             //If there is an even amount of nopes played then we can process
@@ -1584,6 +1609,10 @@ module.exports = function(io, EK) {
                     canNope: false
                 });
             }
+
+            //for (var k in EK.connectedUsers) 
+            //    if (EK.connectedUsers[k].name == "Admin") // log to admins
+            //        io.to(EK.connectedUsers[k].id).emit('message', "NPEND");
             
             //Remove the set from pending
             EK.removePendingSet(pending.set);
@@ -1771,3 +1800,4 @@ module.exports = function(io, EK) {
         return false;
     }
 }
+>>>>>>> master
