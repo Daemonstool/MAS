@@ -1,209 +1,126 @@
 package model;
 
 import java.awt.Color;
-import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Scanner;
-
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import java.util.TreeSet;
 
 import org.graphstream.graph.Edge;
-import org.graphstream.graph.IdAlreadyInUseException;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
-import logic.Atom;
-import logic.Formula;
-import logic.Knows;
+import logic.*;
 
 public class Model extends MultiGraph implements ViewerListener {
-	
+
 	private int worldCount;
-	private ArrayList<String> clickedWorlds = new ArrayList<>();
-	private ArrayList<Formula> commonKnowledge;
+
+	private ArrayList<String> clickedWorlds = new ArrayList<String>();
 	private ArrayList<String> agents;
-	private ArrayList<Node> selectedNodes = new ArrayList<>();
-	private ArrayList<String> messages = new ArrayList<>();
+	private ArrayList<Node> selectedNodes = new ArrayList<Node>();
+	private TreeSet<String> atoms = new TreeSet<String>();//set of all unique atoms in the model. For each atom each node must have a truth assignment
+	private ArrayList<CommonKnowledge> CK = new ArrayList<CommonKnowledge>();
 
 	private int cardsleft = Integer.MAX_VALUE;
+
 	public Model() {
 		super("Arbitrary String #1");
 		this.worldCount = 0;
-		this.commonKnowledge = new ArrayList<Formula>();
 		this.agents = new ArrayList<String>();
+		this.atoms = new TreeSet<String>();
 
-		Socket socket;
-		try {
+		this.atoms.add("ek1");
+		this.atoms.add("ek2");
+		this.atoms.add("ek3");
 
-			JPanel panel = new JPanel(new GridLayout(0, 1));
-			panel.add(new JLabel("You can play the game without hosting at: https://mas-ek.herokuapp.com/"));
-			panel.add(new JLabel("When hosting yourself, make sure to use port 3000 on localhost."));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek1"),new And(new Not(new Atom("ek2")),new Not(new Atom("ek3"))))));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3"))))));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2"))))));
 
-			String[] buttons = { "Connect to Heroku Server", "Connect Localhost (localhost:3000)", "Exit" };
-
-			int result = JOptionPane.showOptionDialog(null, panel, "Connect to game", JOptionPane.WARNING_MESSAGE, 0,
-					null, buttons, buttons[0]);
-
-			if (result == 0) {
-				socket = IO.socket("https://mas-ek.herokuapp.com/");
-			} else if (result == 1) {
-				socket = IO.socket("http://localhost:3000");
-			} else {
-				socket = IO.socket("https://mas-ek.herokuapp.com/");
-				System.exit(0);
-			}
-
-			socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-
-				@Override
-				public void call(Object... args) {
-					socket.emit("connection", "hi");
-					System.out.println("Connected");
-				}
-
-			}).on("message", new Emitter.Listener() {
-
-				@Override
-				public void call(Object... args) {
-					String message = args[0].toString();
-					messages.add(message);
-					String[] substrings = message.split(" ");
-					if(substrings.length > 0){
-						String type = substrings[0];
-						ArrayList<String> arguments = new ArrayList<String>(Arrays.asList(Arrays.copyOfRange(substrings,1,substrings.length)));
-						System.out.println("New message of type " + type + " with arguments " + arguments.toString());
-						update(type,arguments);
-					}else{
-						System.err.println("Invalid message: " + message);
-					}
-				}
-
-			}).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-
-				@Override
-				public void call(Object... args) {
-					System.out.println("Disconnected");
-				}
-
-			});
-			socket.connect();
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		for(CommonKnowledge f : this.CK){
+			System.out.println(f.pprint());
 		}
-		
-		resetModel();
-		
-		ViewerPipe viewPipe = display().newViewerPipe();
-		viewPipe.addViewerListener(this);
-        viewPipe.addSink(this);
-        viewPipe.pump();
-            	
-        while (true) {
-            viewPipe.pump();
-        }
+
+		initWorlds(0,new ArrayList<String>(atoms));
+		display();
 	}
-	
-	private void resetModel()
-	{
-		worldCount = 0;
-		for(int i=0;i<4;++i){
-			try {
-				addNode(getWorldName());
-			}
-			catch(IdAlreadyInUseException e)
-			{
-				System.err.println("ID already in use so we don't add the node again :D");
-			}
-		}
-		
-		for(int i=1;i<4;++i)
-			addAtom("w" + i,"ek" + i);
-		
-		assignLabels();
 
-	}
-	
-	private void assignLabels()
-	{
-		
-		Iterator<Node> nodes = getNodeIterator();
-		
-		while (nodes.hasNext()) {
-			Node n = nodes.next();
-			n.addAttribute("ui.color", new Color(0, 0, 0));
-			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
-		}
-		Iterator<Edge> edges = getEdgeIterator();
-		while (edges.hasNext()) {
-			Edge e = edges.next();
-			e.setAttribute("ui.label", "");	
+	private void initWorlds(int idx, ArrayList<String> atoms){
+		//creates all worlds to have all combinations of atoms present
+		ArrayList<String> negation = new ArrayList<String>(atoms);
+		negation.remove(idx);
+		if(idx == atoms.size()-1){
+			//base case, add worlds
+			String id = addNode("").getId();
+			for(String a : atoms){
+				addAtom(id,a);
+			}
+			id = addNode("").getId();
+			for(String a : negation){
+				addAtom(id,a);
+			}
+		}else{
+			initWorlds(idx+1,atoms);
+			initWorlds(idx,negation);
 		}
 	}
-	
-	private String getWorldName(){
+
+	private String getNextWorldName(){
 		//generate the next world id
 		return "w" + ++worldCount;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Node addNode(String id) {
-		Node n = super.addNode(id);
+	public Node addNode(String dump) {
+		Node n = super.addNode(getNextWorldName());
 		n.setAttribute("atoms", new ArrayList<String>());
 		return n;
 	}
 
 	public void addAtom(String node, String atom) {
 		Node n = getNode(node);
-		ArrayList<String> atoms = n.getAttribute("atoms");
-		if (!atoms.contains(atom))
-			atoms.add(atom);
+		ArrayList<String> nodeAtoms = n.getAttribute("atoms");
+		nodeAtoms.add(atom);
+		if(!this.atoms.contains(atom)){
+			//update the set of all atoms in the model
+			this.atoms.add(atom);
+		}
 	}
-	
+
 	public void constructFromFile(String s)
 	{
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(s));
-			
+
 			String line;
 			while((line = in.readLine()) != null)
 			{
-			    String[] args = line.split(" ");
-			    if (args.length == 2)
-			    	addAtom(args[0], args[1]);
-			    else if (args.length == 4 && args[2].equals("B"))
-			    {
-			    	addRelation(args[0], args[1], args[3]);
-			    	addRelation(args[1], args[0], args[3]);
-			    }
-			    else if (args.length == 4 && args[2].equals("D"))
-			    	addRelation(args[0], args[1], args[3]);
+				String[] args = line.split(" ");
+				if (args.length == 2)
+					addAtom(args[0], args[1]);
+				else if (args.length == 4 && args[2].equals("B"))
+				{
+					addRelation(args[0], args[1], args[3]);
+					addRelation(args[1], args[0], args[3]);
+				}
+				else if (args.length == 4 && args[2].equals("D"))
+					addRelation(args[0], args[1], args[3]);
 			}
 			in.close();
-			
+
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -220,8 +137,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		if (getEdge(idTo + idFrom) != null) {
 			// symmetric relation, do some styling
 			e.setAttribute("ui.class", "symmetric");// tag only applies to one
-													// side to separate the
-													// labels
+			// side to separate the labels
 		}
 		if (idFrom.equals(idTo)) {
 			// reflexive relation, tag it
@@ -249,6 +165,21 @@ public class Model extends MultiGraph implements ViewerListener {
 		return getNode(node).getAttribute("atoms");
 	}
 
+	private String constructNodeLabel(Node n){
+		ArrayList<String> nodeAtoms = n.getAttribute("atoms");
+		StringBuilder ss = new StringBuilder(n.getId() + ": ");
+		for(String a : atoms){
+			if(nodeAtoms.contains(a)){
+				ss.append(a);
+			}else{
+				ss.append("¬" + a);
+			}
+			ss.append(", ");
+		}
+		ss.delete(ss.length()-2,ss.length());
+		return ss.toString();
+	}
+
 	@Override
 	public Viewer display() {
 		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
@@ -266,134 +197,138 @@ public class Model extends MultiGraph implements ViewerListener {
 			e1.printStackTrace();
 		}
 		addAttribute("ui.stylesheet", stylesheet);
-		
-		return super.display();
+
+		Iterator<Node> nodes = getNodeIterator();
+
+		while (nodes.hasNext()) {
+			Node n = nodes.next();
+			n.addAttribute("ui.color", new Color(0, 0, 0));
+			n.setAttribute("ui.label", constructNodeLabel(n));
+		}
+		Iterator<Edge> edges = getEdgeIterator();
+		while (edges.hasNext()) {
+			Edge e = edges.next();
+			e.setAttribute("ui.label", "");	
+		}
+
+		Viewer view = super.display();
+
+		ViewerPipe viewPipe = view.newViewerPipe();
+		viewPipe.addViewerListener(this);
+		viewPipe.addSink(this);
+		viewPipe.pump();
+
+		while (true) {
+			viewPipe.pump();
+		}
 	}
-	
-	// e.g.: removes all but w4w4
-	private void removeRelationsForAgentsExcept(String agent, Node n)
-	{
-		for(int w1 = 1; w1 <= worldCount; ++w1){
-			for(int w2 = 1; w2 <= worldCount; ++w2){
-				if (hasRelation("w" + w1, "w"+ w2, agent) && !(n.equals(getNode("w" + w1)) && n.equals(getNode("w" + w2)))) {
-						removeRelation("w" + w1, "w" + w2, agent);
+
+	public void removeRelation(String edgeId, String agent){
+		//remove a relation for an agent between two worlds
+		Edge e = getEdge(edgeId);
+		if(e != null){
+			ArrayList<String> agents = e.getAttribute("agents");
+			if(agents.contains(agent)){
+				System.out.println("Removing relation " + edgeId + " for agent " + agent);
+				agents.remove(agent);
+				if(agents.isEmpty()){
+					removeEdge(edgeId);
 				}
+				return;
 			}
 		}
-	}		
-	
-	private void update(String type, ArrayList<String> args){
-		if(type.equals("STF")){
-			boolean ek = false;
-			for (int idx = 0; idx != 3; ++idx)
-				if ( STF(args,idx))
-					ek = true;
-			
-			if (!ek){
-				//only w4 is true
-				removeRelationsForAgentsExcept(args.get(0), getNode("w4"));
-			}
-		}
-		
-		if(type.equals("INIT")){
-			INIT(args);
-		}
-		
-		if(type.equals("INITDONE")){
-			resetModel();
-			INITDONE();
-			
-		}
-		
-		if(type.equals("DC")){
-			drawCard(args);
-		}
-
-		if(type.equals("SH")){
-			SH(); //Throw away all knowledge.
-		}
-	
-		if (type.equals("SS"))
-		{
-			this.cardsleft = Integer.valueOf(args.get(0));
-			//System.out.println(cardsleft + " = cardsleft");
-			switch (cardsleft)
-			{
-				case 1: 
-					try 
-					{ 
-						removeNode("w2");
-					} 
-					catch (Exception e)
-					{
-						System.err.println("Already removed");
-					}
-					this.worldCount = 1;
-					this.interConnectAll();
-					break;
-				case 2:
-					try 
-					{ 
-						removeNode("w3");
-					} 
-					catch (Exception e)
-					{
-						System.err.println("Already removed");
-					}
-					this.worldCount = 2;
-					break;
-				case 3: 
-					try 
-					{ 
-						removeNode("w4");
-					} 
-					catch (Exception e)
-					{
-						System.err.println("Already removed");
-					}
-					this.worldCount = 3;
-					break;
-			}
-		}
-		
-		// We dont have to check for nopes since the message is not sent anyway when someone card(set) is noped.
-		// Hence it is not processed in the model, therefore there is no gain of knowledge.
-		if(type.equals("NP")){
-			// Nothing ... until we keep track of nope cards in kripke worlds.
-		}
-
-		if (type.equals("EK"))
-		{
-			if (agents.size() == 2)
-			{
-				System.out.println("Game Over");
-			}
-		}
-		
-		if(type.equals("DF"))
-		{
-			
-		}
-		updateLabels();
-		
+		System.err.println("Tried to remove agent " + agent + "on relation " + edgeId + "while that relation wasn't there!");
 	}
 
-	public static void main(String[] args) {
-		new Model();
+	public void removeRelation(String idFrom, String idTo, String agent){
+		//remove a relation for an agent between two worlds
+		removeRelation(idFrom+idTo,agent);
+	}
+
+	public boolean hasRelation(String edgeId, String agent){
+		Edge e = getEdge(edgeId);
+		if(e != null){
+			ArrayList<String> agents = e.getAttribute("agents");
+			return agents.contains(agent);
+		}else{
+			return false;
+		}
+
+	}
+
+	public boolean hasRelation(String idFrom, String idTo, String agent){
+		return hasRelation(idFrom+idTo,agent);
+	}
+
+	public boolean isConsistent(Node n){
+		//returns whether a node is possible given the common knowledge rules
+		for(CommonKnowledge c : CK){
+			if(!c.evaluate(n)){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/* Checks whether how much worlds an agent can reach given a world */
+	public int canAccessWorlds(String agent, Node n)
+	{
+		Iterator<Edge> it =  n.getEachLeavingEdge().iterator();
+
+		int accessCount = 0;
+		while (it.hasNext())
+		{
+			Edge e = it.next();
+			ArrayList<String> agents = e.getAttribute("agents");
+
+			if (agents.contains(agent))
+			{
+				++accessCount;
+			}
+		}
+
+		return accessCount;
+
+	}
+
+	private void canAccessWorlds(String agent)
+	{	
+		Iterator<Node> nodes = getNodeIterator();
+		while (nodes.hasNext())
+		{
+			Node n = nodes.next();
+			ArrayList<String> atoms = n.getAttribute("atoms");
+			StringBuilder sb = new StringBuilder();
+			for (String s : atoms)
+			{
+				Formula f = new Knows(new Atom(s),agent);
+				f.evaluate(n);
+				sb.append(s);
+			}
+			System.out.println("Agent: " + agent + " can access " + n.getId() + " with " + sb.toString());
+		}
+	}
+
+	public int getWorldCount() {
+		return worldCount;
+	}
+
+	public ArrayList<String> getAgents() {
+		return agents;
 	}
 
 	@Override
-	public void viewClosed(String viewName) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void buttonReleased(String id) {}
+
+	@Override
+	public void viewClosed(String viewName) {}
 
 	@Override
 	public void buttonPushed(String id) {
 		// TODO Auto-generated method stub
-		
+
 		Iterator<Edge> it = getNode(id).getEachEdge().iterator();
-		
+
 		if (selectedNodes.contains(getNode(id)))
 		{
 			selectedNodes.remove(getNode(id));
@@ -406,9 +341,9 @@ public class Model extends MultiGraph implements ViewerListener {
 			getNode(id).removeAttribute("ui.color");
 			getNode(id).addAttribute("ui.color", new Color(255, 0, 0));
 		}
-		
+
 		Iterator<Node> it3 = super.getNodeIterator();
-		
+
 		while (it3.hasNext())
 		{
 			Node n3 = it3.next();
@@ -430,232 +365,46 @@ public class Model extends MultiGraph implements ViewerListener {
 				}
 			}
 		}
-		
 	}
-	
-	public void removeRelation(String edgeId, String agent){
-		//remove a relation for an agent between two worlds
-		Edge e = getEdge(edgeId);
-		if(e != null){
-			ArrayList<String> agents = e.getAttribute("agents");
-			if(agents.contains(agent)){
-				System.out.println("Removing relation " + edgeId + " for agent " + agent);
-				agents.remove(agent);
-				if(agents.isEmpty()){
-					removeEdge(edgeId);
-				}
-				return;
-			}
-		}
-		System.err.println("Tried to remove agent " + agent + "on relation " + edgeId + "while that relation wasn't there!");
-	}
-	
-	public void removeRelation(String idFrom, String idTo, String agent){
-		//remove a relation for an agent between two worlds
-		removeRelation(idFrom+idTo,agent);
-	}
-	
-	public boolean hasRelation(String edgeId, String agent){
-		Edge e = getEdge(edgeId);
-		if(e != null){
-			ArrayList<String> agents = e.getAttribute("agents");
-			return agents.contains(agent);
-		}else{
-			return false;
-		}
-		
-	}
-	
-	public boolean hasRelation(String idFrom, String idTo, String agent){
-		return hasRelation(idFrom+idTo,agent);
-	}
-	
-	private void INIT(ArrayList<String> args){
-		String player = args.get(0);
-		this.agents.add(player);
-	}
-	
-	
-	private void interConnectAll(){
+
+	// e.g.: removes all but w4w4
+	public void removeRelationsForAgentsExcept(String agent, Node n)
+	{
 		for(int w1 = 1; w1 <= worldCount; ++w1){
 			for(int w2 = 1; w2 <= worldCount; ++w2){
-				for(String a : this.agents){
-					if (!hasRelation("w" + w1, "w"+ w2, a)) {
-						addRelation("w" + w1, "w" + w2, a);
-					}
+				if (hasRelation("w" + w1, "w"+ w2, agent) && !(n.equals(getNode("w" + w1)) && n.equals(getNode("w" + w2)))) {
+					removeRelation("w" + w1, "w" + w2, agent);
 				}
 			}
 		}
-	}
-	
-	private void INITDONE(){
-		interConnectAll();
-	}
-	
-	
-	private void SH(){
-		interConnectAll();
-	}
-	
-	private boolean STF(ArrayList<String> args, int card){
-		String player = args.get(0);
-		boolean EK = false;
-		if(args.size() > card && args.get(card).equals("Explode")){
-			Iterator<Node> nodes = getNodeIterator();
-			EK = true;
-			while(nodes.hasNext()){
-				Node n1 = nodes.next();
-				ArrayList<String> atoms = n1.getAttribute("atoms");
-				if(!atoms.contains("ek"+card)){
-					//node contradicts the new information
-					HashSet<String> toRemove = new HashSet<String>();
-					Iterator<Edge> edges = n1.getEdgeIterator();
-					while(edges.hasNext()){
-						//search for edges that need to be removed
-						Edge e = edges.next();
-						toRemove.add(e.getId());
-					}
-					//actually remove the edges
-					for(String e : toRemove){
-						if(hasRelation(e,player)){
-							removeRelation(e, player);
-						}
-					}
-				}
-			}
-		}
-		return EK;
-	}
-	
-	
-	/* Checks whether how much worlds an agent can reach given a world */
-	private int canAccessWorlds(String agent, Node n)
-	{
-		Iterator<Edge> it =  n.getEachLeavingEdge().iterator();
-		
-		int accessCount = 0;
-		while (it.hasNext())
-		{
-			Edge e = it.next();
-			ArrayList<String> agents = e.getAttribute("agents");
-			
-			if (agents.contains(agent))
-			{
-				++accessCount;
-			}
-		}
-		
-		return accessCount;
-		
+	}	
+
+	public void setCardsleft(int cardsleft) {
+		this.cardsleft = cardsleft;
 	}
 
-	private void canAccessWorlds(String agent)
-	{	
+	public int getCardsleft() {
+		return cardsleft;
+	}
+
+	private void assignLabels()
+	{
+
 		Iterator<Node> nodes = getNodeIterator();
-		while (nodes.hasNext())
-		{
-			Node n = nodes.next();
-			ArrayList<String> atoms = n.getAttribute("atoms");
-			StringBuilder sb = new StringBuilder();
-			for (String s : atoms)
-			{
-				Formula f = new Knows(new Atom(s),agent);
-				f.evaluate(n);
-				sb.append(s);
-			}
-			System.out.println("Agent: " + agent + " can access " + n.getId() + " with " + sb.toString());
-		}
-	}
-	
-	public void updateLabels() 
-	{
-		Iterator<Node> it = super.getNodeIterator();
-		
-		while (it.hasNext())
-		{
-			Node n = it.next();
-			buttonPushed(n.getId());
-			buttonPushed(n.getId());
-		}
-		
-	}
-	
-	
-	
-	private void shiftWorldsForEK(String agent, Node n){
-		String nodeName = n.getId();
-		removeRelation(nodeName, nodeName, agent);
-		nodeName = "w" + (Integer.parseInt(nodeName.substring(1,nodeName.length())) - 1);
-		addRelation(nodeName, nodeName, agent);
-	}
-	
-	//Interconnects relations of w4 up to w (nConnected + 1)
-	private void extendUncertainty(String agent, int nConnected){
-		for (int w1 = worldCount; w1 >= (worldCount - nConnected); --w1)
-			for (int w2 = worldCount; w2 >= (worldCount - nConnected); --w2)
-				if (!hasRelation("w" + w1, "w" + w2, agent)){
-					addRelation("w" + w1, "w" + w2, agent);
-					//System.out.println("Adding relation" + "w"+w1+"w"+w2 + "for agent " + agent);
-				}
-	}
-	
-	private void drawCard(ArrayList<String> args){
-		// TODO: Update knowledge about hands
-		// String player = args.get(0);
-		// String card = args.get(1);
-		
-		// Shift knowledge about EK to next world for each agent.
-		ArrayList<Node> shiftNodes = new ArrayList<Node>();
-		ArrayList<String> shiftAgents = new ArrayList<String>();
-		
-		ArrayList<String> extendAgents = new ArrayList<String>();
-		ArrayList<Integer> extendSize = new ArrayList<>();
-		
-		String compareWith = "w" + worldCount;
-		
-		for (String a : this.agents) {
-			Iterator<Node> nodes = getNodeIterator();
-			
-			
-			while (nodes.hasNext()){
-				//Check for each node if it only has a relation to itself for the agent: is reflexive
-				Node n1 = nodes.next();
-				
-				//This is not true for w4, and w1 gets already processed by SS.
-				if( canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w4") && !n1.getId().equals("w1"))){
-					//actually shift worlds for EK
-					shiftNodes.add(n1);
-					shiftAgents.add(a);
-				}
-				
-				
-				for (int i = (worldCount - 1) ; i >= 1; --i){
-					if (canAccessWorlds(a, n1) == i && (n1.getId().equals(compareWith))){
-						extendAgents.add(a);
-						extendSize.add(i);
-					}
-				}
-				
-			}
-		}
-		
-		for(int i = 0; i < shiftNodes.size(); ++i)
-			shiftWorldsForEK(shiftAgents.get(i), shiftNodes.get(i));
-		
-		for(int i = 0; i < extendSize.size(); ++i)
-			extendUncertainty(extendAgents.get(i), extendSize.get(i));
-		
-		
-		
-	}
-	
-	public ArrayList<Formula> getCommonKnowledge() {
-		return commonKnowledge;
-	}
 
-	@Override
-	public void buttonReleased(String id) {
-		// TODO Auto-generated method stub
-		
+		while (nodes.hasNext()) {
+			Node n = nodes.next();
+			n.addAttribute("ui.color", new Color(0, 0, 0));
+			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
+		}
+		Iterator<Edge> edges = getEdgeIterator();
+		while (edges.hasNext()) {
+			Edge e = edges.next();
+			e.setAttribute("ui.label", "");	
+		}
+	}
+	
+	public void setWorldCount(int worldCount) {
+		this.worldCount = worldCount;
 	}
 }
