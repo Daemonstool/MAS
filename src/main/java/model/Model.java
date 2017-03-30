@@ -46,10 +46,8 @@ public class Model extends MultiGraph implements ViewerListener {
 		this.CK.add(new CommonKnowledge(new If(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3"))))));
 		this.CK.add(new CommonKnowledge(new If(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2"))))));
 
-		for(CommonKnowledge f : this.CK){
-			System.out.println(f.pprint());
-		}
-
+		//printCommonKnowledge();
+		
 		initWorlds(0,new ArrayList<String>(atoms));
 	}
 
@@ -306,6 +304,12 @@ public class Model extends MultiGraph implements ViewerListener {
 				sb.append(s);
 			}
 			System.out.println("Agent: " + agent + " can access " + n.getId() + " with " + sb.toString());
+		}
+	}
+	
+	private void printCommonKnowledge(){
+		for(CommonKnowledge f : this.CK){
+			System.out.println(f.pprint());
 		}
 	}
 
