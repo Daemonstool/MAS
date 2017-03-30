@@ -198,21 +198,22 @@ public class Game {
 		if(args.size() > card && args.get(card).equals("Explode")){
 			Iterator<Node> nodes = model.getNodeIterator();
 			EK = true;
-			while(nodes.hasNext()){
+			while (nodes.hasNext()){
 				Node n1 = nodes.next();
 				ArrayList<String> atoms = n1.getAttribute("atoms");
-				if(!atoms.contains("ek"+card)){
+				if (!atoms.get(card).contains("ek" + card)){
 					//node contradicts the new information
+					//System.out.println(atoms);
 					HashSet<String> toRemove = new HashSet<String>();
 					Iterator<Edge> edges = n1.getEdgeIterator();
-					while(edges.hasNext()){
+					while (edges.hasNext()){
 						//search for edges that need to be removed
 						Edge e = edges.next();
 						toRemove.add(e.getId());
 					}
 					//actually remove the edges
-					for(String e : toRemove){
-						if(model.hasRelation(e,player)){
+					for (String e : toRemove){
+						if (model.hasRelation(e,player)){
 							model.removeRelation(e, player);
 						}
 					}
@@ -223,14 +224,9 @@ public class Game {
 	}
 
 	private void drawCard(ArrayList<String> args){
-		// TODO: Update knowledge about hands
-		// String player = args.get(0);
-		// String card = args.get(1);
-
 		// Shift knowledge about EK to next world for each agent.
 		ArrayList<Node> shiftNodes = new ArrayList<Node>();
 		ArrayList<String> shiftAgents = new ArrayList<String>();
-
 		ArrayList<String> extendAgents = new ArrayList<String>();
 		ArrayList<Integer> extendSize = new ArrayList<>();
 
@@ -245,7 +241,7 @@ public class Game {
 				Node n1 = nodes.next();
 
 				//This is not true for w4, and w1 gets already processed by SS.
-				if(model.canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w4") && !n1.getId().equals("w1"))){
+				if(model.canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w8") && !n1.getId().equals("w1"))){
 					//actually shift worlds for EK
 					shiftNodes.add(n1);
 					shiftAgents.add(a);
@@ -274,28 +270,22 @@ public class Game {
 		model.getAgents().add(player);
 		String agent = args.get(0);
 		model.getAgents().add(agent);
-		for(int w1=1;w1<=model.getWorldCount();++w1){
-			if(model.isConsistent(model.getNode("w"+w1))){
-				for(int w2=1;w2<=model.getWorldCount();++w2){
-					if(model.isConsistent(model.getNode("w"+w2))){
-						model.addRelation("w"+w1,"w"+w2,agent);
-					}
-				}
-			}
-		}
+		for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
+			if(model.isConsistent(model.getNode("w"+w1)))
+				for(int w2 = 1; w2<=model.getWorldCount(); ++w2)
+					if(model.isConsistent(model.getNode("w" + w2)))
+						model.addRelation("w" + w1, "w" + w2, agent);
 	}
 
-
+	//also check inconsistency.
 	private void interConnectAll(){
-		for(int w1 = 1; w1 <= model.getWorldCount(); ++w1){
-			for(int w2 = 1; w2 <= model.getWorldCount(); ++w2){
-				for(String a : model.getAgents()){
-					if (!model.hasRelation("w" + w1, "w"+ w2, a)) {
-						model.addRelation("w" + w1, "w" + w2, a);
-					}
-				}
-			}
-		}
+		for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
+			if (model.isConsistent(model.getNode("w" + w1)))
+				for (int w2 = 1; w2 <= model.getWorldCount(); ++w2)
+					if (model.isConsistent(model.getNode("w" + w2)))
+						for (String a : model.getAgents())
+							if (!model.hasRelation("w" + w1, "w" + w2, a))
+								model.addRelation("w" + w1, "w" + w2, a);
 	}
 
 
