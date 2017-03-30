@@ -51,7 +51,6 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 
 		initWorlds(0,new ArrayList<String>(atoms));
-		display();
 	}
 
 	private void initWorlds(int idx, ArrayList<String> atoms){

@@ -113,6 +113,7 @@ public class Game {
 
 		if(type.equals("INITDONE")){
 			this.isInitialised = true;
+			model.display();
 		}
 
 		if(type.equals("DC")){
