@@ -27,7 +27,6 @@ public class Game {
 		this.model = new Model();
 		Socket socket;
 		try {
-			System.out.println("DING");
 			JPanel panel = new JPanel(new GridLayout(0, 1));
 			panel.add(new JLabel("You can play the game without hosting at: https://mas-ek.herokuapp.com/"));
 			panel.add(new JLabel("When hosting yourself, make sure to use port 3000 on localhost."));
@@ -97,8 +96,12 @@ public class Game {
 			String agent = args.get(0);
 			model.getAgents().add(agent);
 			for(int w1=1;w1<=model.getWorldCount();++w1){
-				for(int w2=1;w2<=model.getWorldCount();++w2){
-					model.addRelation("w"+w1,"w"+w2,agent);
+				if(model.isConsistent(model.getNode("w"+w1))){
+					for(int w2=1;w2<=model.getWorldCount();++w2){
+						if(model.isConsistent(model.getNode("w"+w2))){
+							model.addRelation("w"+w1,"w"+w2,agent);
+						}
+					}
 				}
 			}
 		}

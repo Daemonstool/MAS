@@ -7,9 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.TreeSet;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -30,14 +30,14 @@ public class Model extends MultiGraph implements ViewerListener {
 	private ArrayList<String> clickedWorlds = new ArrayList<String>();
 	private ArrayList<String> agents;
 	private ArrayList<Node> selectedNodes = new ArrayList<Node>();
-	private HashSet<String> atoms = new HashSet<String>();//set of all unique atoms in the model. For each atom each node must have a truth assignment
+	private TreeSet<String> atoms = new TreeSet<String>();//set of all unique atoms in the model. For each atom each node must have a truth assignment
 	private ArrayList<CommonKnowledge> CK = new ArrayList<CommonKnowledge>();
 
 	public Model() {
 		super("Arbitrary String #1");
 		this.worldCount = 0;
 		this.agents = new ArrayList<String>();
-		this.atoms = new HashSet<String>();
+		this.atoms = new TreeSet<String>();
 		
 		this.atoms.add("ek1");
 		this.atoms.add("ek2");
@@ -259,6 +259,16 @@ public class Model extends MultiGraph implements ViewerListener {
 	
 	public boolean hasRelation(String idFrom, String idTo, String agent){
 		return hasRelation(idFrom+idTo,agent);
+	}
+	
+	public boolean isConsistent(Node n){
+		//returns whether a node is possible given the common knowledge rules
+		for(CommonKnowledge c : CK){
+			if(!c.evaluate(n)){
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public int getWorldCount() {
