@@ -27,6 +27,7 @@ public class Game {
 
 	public Game(){
 		this.isInitialised = false;
+		this.model = new Model();
 		try {
 
 			JPanel panel = new JPanel(new GridLayout(0, 1));
@@ -85,7 +86,7 @@ public class Game {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		this.model = new Model();
+		model.display();
 	}
 
 
@@ -112,7 +113,6 @@ public class Game {
 
 		if(type.equals("INITDONE")){
 			this.isInitialised = true;
-			model.display();
 		}
 
 		if(type.equals("DC")){

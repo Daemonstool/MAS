@@ -210,7 +210,8 @@ public class Model extends MultiGraph implements ViewerListener {
 			e.setAttribute("ui.label", "");	
 		}
 		
-		/*
+		Viewer view = super.display();
+		
 		ViewerPipe viewPipe = view.newViewerPipe();
 		viewPipe.addViewerListener(this);
 		viewPipe.addSink(this);
@@ -219,9 +220,6 @@ public class Model extends MultiGraph implements ViewerListener {
 		while (true) {
 			viewPipe.pump();
 		}
-		*/
-		
-		return super.display();
 	}
 
 	public void removeRelation(String edgeId, String agent){
