@@ -18,11 +18,7 @@ import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
 
-import logic.And;
-import logic.Atom;
-import logic.CommonKnowledge;
-import logic.Iff;
-import logic.Not;
+import logic.*;
 
 public class Model extends MultiGraph implements ViewerListener {
 	
@@ -43,9 +39,9 @@ public class Model extends MultiGraph implements ViewerListener {
 		this.atoms.add("ek2");
 		this.atoms.add("ek3");
 		
-		this.CK.add(new CommonKnowledge(new Iff(new Atom("ek1"),new And(new Not(new Atom("ek2")),new Not(new Atom("ek3"))))));
-		this.CK.add(new CommonKnowledge(new Iff(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3"))))));
-		this.CK.add(new CommonKnowledge(new Iff(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2"))))));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek1"),new And(new Not(new Atom("ek2")),new Not(new Atom("ek3"))))));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3"))))));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2"))))));
 		
 		for(CommonKnowledge f : this.CK){
 			System.out.println(f.pprint());
