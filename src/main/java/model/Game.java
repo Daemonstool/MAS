@@ -107,8 +107,11 @@ public class Game {
 			if(this.isInitialised){
 				this.isInitialised = false;
 				this.model = new Model();
+				Game g = new Game();
+				g.INIT(args);
+			}else{
+				INIT(args);
 			}
-			INIT(args);
 		}
 
 		if(type.equals("INITDONE")){
