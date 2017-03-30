@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.graphstream.graph.Edge;
+import org.graphstream.graph.IdAlreadyInUseException;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.view.Viewer;
@@ -108,13 +109,8 @@ public class Model extends MultiGraph implements ViewerListener {
 			e.printStackTrace();
 		}
 		
-		for(int i=0;i<4;++i){
-			addNode(getWorldName());
-		}
-		addAtom("w1","ek1");
-		addAtom("w2","ek2");
-		addAtom("w3","ek3");
-
+		resetModel();
+		
 		ViewerPipe viewPipe = display().newViewerPipe();
 		viewPipe.addViewerListener(this);
         viewPipe.addSink(this);
@@ -123,6 +119,43 @@ public class Model extends MultiGraph implements ViewerListener {
         while (true) {
             viewPipe.pump();
         }
+	}
+	
+	private void resetModel()
+	{
+		worldCount = 0;
+		for(int i=0;i<4;++i){
+			try {
+				addNode(getWorldName());
+			}
+			catch(IdAlreadyInUseException e)
+			{
+				System.err.println("ID already in use so we don't add the node again :D");
+			}
+		}
+		
+		for(int i=1;i<4;++i)
+			addAtom("w" + i,"ek" + i);
+		
+		assignLabels();
+
+	}
+	
+	private void assignLabels()
+	{
+		
+		Iterator<Node> nodes = getNodeIterator();
+		
+		while (nodes.hasNext()) {
+			Node n = nodes.next();
+			n.addAttribute("ui.color", new Color(0, 0, 0));
+			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
+		}
+		Iterator<Edge> edges = getEdgeIterator();
+		while (edges.hasNext()) {
+			Edge e = edges.next();
+			e.setAttribute("ui.label", "");	
+		}
 	}
 	
 	private String getWorldName(){
@@ -141,7 +174,8 @@ public class Model extends MultiGraph implements ViewerListener {
 	public void addAtom(String node, String atom) {
 		Node n = getNode(node);
 		ArrayList<String> atoms = n.getAttribute("atoms");
-		atoms.add(atom);
+		if (!atoms.contains(atom))
+			atoms.add(atom);
 	}
 	
 	public void constructFromFile(String s)
@@ -232,19 +266,6 @@ public class Model extends MultiGraph implements ViewerListener {
 			e1.printStackTrace();
 		}
 		addAttribute("ui.stylesheet", stylesheet);
-
-		Iterator<Node> nodes = getNodeIterator();
-	
-		while (nodes.hasNext()) {
-			Node n = nodes.next();
-			n.addAttribute("ui.color", new Color(0, 0, 0));
-			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
-		}
-		Iterator<Edge> edges = getEdgeIterator();
-		while (edges.hasNext()) {
-			Edge e = edges.next();
-			e.setAttribute("ui.label", "");	
-		}
 		
 		return super.display();
 	}
@@ -259,7 +280,7 @@ public class Model extends MultiGraph implements ViewerListener {
 				}
 			}
 		}
-	}
+	}		
 	
 	private void update(String type, ArrayList<String> args){
 		if(type.equals("STF")){
@@ -279,7 +300,9 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 		
 		if(type.equals("INITDONE")){
+			resetModel();
 			INITDONE();
+			
 		}
 		
 		if(type.equals("DC")){
@@ -318,7 +341,6 @@ public class Model extends MultiGraph implements ViewerListener {
 						System.err.println("Already removed");
 					}
 					this.worldCount = 2;
-					this.interConnectAll();
 					break;
 				case 3: 
 					try 
@@ -330,7 +352,6 @@ public class Model extends MultiGraph implements ViewerListener {
 						System.err.println("Already removed");
 					}
 					this.worldCount = 3;
-					this.interConnectAll();
 					break;
 			}
 		}
@@ -590,6 +611,8 @@ public class Model extends MultiGraph implements ViewerListener {
 		ArrayList<String> extendAgents = new ArrayList<String>();
 		ArrayList<Integer> extendSize = new ArrayList<>();
 		
+		String compareWith = "w" + worldCount;
+		
 		for (String a : this.agents) {
 			Iterator<Node> nodes = getNodeIterator();
 			
@@ -597,7 +620,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			while (nodes.hasNext()){
 				//Check for each node if it only has a relation to itself for the agent: is reflexive
 				Node n1 = nodes.next();
-
+				
 				//This is not true for w4, and w1 gets already processed by SS.
 				if( canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w4") && !n1.getId().equals("w1"))){
 					//actually shift worlds for EK
@@ -607,7 +630,7 @@ public class Model extends MultiGraph implements ViewerListener {
 				
 				
 				for (int i = (worldCount - 1) ; i >= 1; --i){
-					if (canAccessWorlds(a, n1) == i && (n1.getId().equals("w4"))){
+					if (canAccessWorlds(a, n1) == i && (n1.getId().equals(compareWith))){
 						extendAgents.add(a);
 						extendSize.add(i);
 					}

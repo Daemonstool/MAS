@@ -387,7 +387,7 @@ Game.prototype.resetDeck = function() {
     var multiplier = (this.players.length > 5) ? 2 : 1;
     
     //Generate cards
-    for (var i = 0; i < 5 * multiplier; i++) {
+    for (var i = 0; i < 2 * multiplier; i++) {
         if (i < 4 * multiplier) {
             //Special
            
@@ -414,9 +414,6 @@ Game.prototype.resetDeck = function() {
             //this.drawPile.push(new Card(this.generateRandomID(), 'Guacamole', $.CARD.REGULAR, 8));
         }
         
-        this.drawPile.push(new Card(this.generateRandomID(), 'Future', $.CARD.FUTURE, 9));
-        this.drawPile.push(new Card(this.generateRandomID(), 'Future', $.CARD.FUTURE, 9));
-        this.drawPile.push(new Card(this.generateRandomID(), 'Future', $.CARD.FUTURE, 9));
         this.drawPile.push(new Card(this.generateRandomID(), 'Future', $.CARD.FUTURE, 9));
         //this.drawPile.push(new Card(this.generateRandomID(), 'Nope', $.CARD.NOPE, 3));
     }
