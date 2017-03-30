@@ -107,6 +107,7 @@ public class Game {
 			if(this.isInitialised){
 				this.isInitialised = false;
 				this.model = new Model();
+				this.model.assignLabels();
 			}
 			INIT(args);
 		}

@@ -158,6 +158,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			ArrayList<String> agents = e.getAttribute("agents");
 			agents.add(agent);
 		}
+		e.addAttribute("layout.weight", 8);
 	}
 
 	public ArrayList<String> getAtoms(String node) {
@@ -171,7 +172,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			if(nodeAtoms.contains(a)){
 				ss.append(a);
 			}else{
-				ss.append("¬" + a);
+				ss.append("Â¬" + a);
 			}
 			ss.append(", ");
 		}
@@ -386,7 +387,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		return cardsleft;
 	}
 
-	private void assignLabels()
+	public void assignLabels()
 	{
 
 		Iterator<Node> nodes = getNodeIterator();
