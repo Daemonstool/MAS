@@ -209,9 +209,8 @@ public class Model extends MultiGraph implements ViewerListener {
 			Edge e = edges.next();
 			e.setAttribute("ui.label", "");	
 		}
-
-		Viewer view = super.display();
-
+		
+		/*
 		ViewerPipe viewPipe = view.newViewerPipe();
 		viewPipe.addViewerListener(this);
 		viewPipe.addSink(this);
@@ -220,6 +219,9 @@ public class Model extends MultiGraph implements ViewerListener {
 		while (true) {
 			viewPipe.pump();
 		}
+		*/
+		
+		return super.display();
 	}
 
 	public void removeRelation(String edgeId, String agent){
@@ -228,7 +230,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(e != null){
 			ArrayList<String> agents = e.getAttribute("agents");
 			if(agents.contains(agent)){
-				System.out.println("Removing relation " + edgeId + " for agent " + agent);
+				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
 				agents.remove(agent);
 				if(agents.isEmpty()){
 					removeEdge(edgeId);

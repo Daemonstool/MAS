@@ -23,12 +23,10 @@ public class Game {
 	private Model model;
 	private ArrayList<String> messages = new ArrayList<String>();
 	private boolean isInitialised;
+	private Socket socket;
 
 	public Game(){
-		this.model = new Model();
 		this.isInitialised = false;
-		
-		Socket socket;
 		try {
 
 			JPanel panel = new JPanel(new GridLayout(0, 1));
@@ -87,6 +85,7 @@ public class Game {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		this.model = new Model();
 	}
 
 
