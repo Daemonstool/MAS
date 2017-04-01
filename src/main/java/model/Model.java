@@ -156,6 +156,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			ArrayList<String> agents = e.getAttribute("agents");
 			agents.add(agent);
 		}
+		System.out.println("Add relation: " + idFrom + idTo + " for " + agent);
 		e.addAttribute("layout.weight", 8);
 	}
 

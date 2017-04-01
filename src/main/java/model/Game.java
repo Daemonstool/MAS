@@ -93,7 +93,7 @@ public class Game {
 	private void update(String type, ArrayList<String> args){
 		if(type.equals("STF")){
 			boolean ek = false;
-			for (int idx = 0; idx != 3; ++idx)
+			for (int idx = 1; idx != 4; ++idx)
 				if ( STF(args,idx))
 					ek = true;
 
@@ -134,37 +134,37 @@ public class Game {
 			switch (model.getCardsleft())
 			{
 			case 1: 
-				try 
+				/*try 
 				{ 
 					model.removeNode("w2");
 				} 
 				catch (Exception e)
 				{
 					System.err.println("Already removed");
-				}
+				}*/
 				model.setWorldCount(1);
 				this.interConnectAll();
 				break;
 			case 2:
-				try 
+				/*try 
 				{ 
 					model.removeNode("w3");
 				} 
 				catch (Exception e)
 				{
 					System.err.println("Already removed");
-				}
+				}*/
 				model.setWorldCount(2);
 				break;
 			case 3: 
-				try 
+				/*try 
 				{ 
 					model.removeNode("w4");
 				} 
 				catch (Exception e)
 				{
 					System.err.println("Already removed");
-				}
+				}*/
 				model.setWorldCount(3);
 				break;
 			}
@@ -195,15 +195,24 @@ public class Game {
 	private boolean STF(ArrayList<String> args, int card){
 		String player = args.get(0);
 		boolean EK = false;
-		if(args.size() > card && args.get(card).equals("Explode")){
+		boolean proceed = false;
+		// EK in STF
+		if (args.size() > card && args.get(card).equals("Explode")){
 			Iterator<Node> nodes = model.getNodeIterator();
 			EK = true;
 			while (nodes.hasNext()){
+				// get each node
 				Node n1 = nodes.next();
 				ArrayList<String> atoms = n1.getAttribute("atoms");
-				if (!atoms.get(card).contains("ek" + card)){
+				try
+				{
+					proceed = !atoms.contains("ek" + card);
+				}
+				catch (Exception e){
+					proceed = false; // array empty, dont go in next if-statement.
+				}
+				if (proceed && model.isConsistent(n1)) {
 					//node contradicts the new information
-					//System.out.println(atoms);
 					HashSet<String> toRemove = new HashSet<String>();
 					Iterator<Edge> edges = n1.getEdgeIterator();
 					while (edges.hasNext()){
@@ -212,11 +221,9 @@ public class Game {
 						toRemove.add(e.getId());
 					}
 					//actually remove the edges
-					for (String e : toRemove){
-						if (model.hasRelation(e,player)){
+					for (String e : toRemove)
+						if (model.hasRelation(e,player))
 							model.removeRelation(e, player);
-						}
-					}
 				}
 			}
 		}
@@ -234,35 +241,39 @@ public class Game {
 
 		for (String a : model.getAgents()) {
 			Iterator<Node> nodes = model.getNodeIterator();
-
-
 			while (nodes.hasNext()){
-				//Check for each node if it only has a relation to itself for the agent: is reflexive
 				Node n1 = nodes.next();
 
-				//This is not true for w4, and w1 gets already processed by SS.
-				if(model.canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w8") && !n1.getId().equals("w1"))){
+				//This is should not done for worlds where ek1 is true or all not EK (w8)
+				//SS should handle these.
+				
+				//Check for each node if it only has a relation to itself for the agent: is reflexive
+				
+				if(model.canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w8") && !n1.getId().contains("ek1"))){
 					//actually shift worlds for EK
+					System.out.println("agent: " + a + " node: " + n1);
 					shiftNodes.add(n1);
 					shiftAgents.add(a);
 				}
-
-
+				/*
+				//
 				for (int i = (model.getWorldCount() - 1) ; i >= 1; --i){
-					if (model.canAccessWorlds(a, n1) == i && (n1.getId().equals(compareWith))){
+					if (model.canAccessWorlds(a, n1) == i && (n1.getId().contains(compareWith) && model.isConsistent(n1))){
 						extendAgents.add(a);
 						extendSize.add(i);
 					}
-				}
+				}*/
 
 			}
 		}
 
-		for(int i = 0; i < shiftNodes.size(); ++i)
+		for(int i = 0; i < shiftNodes.size(); ++i){
 			shiftWorldsForEK(shiftAgents.get(i), shiftNodes.get(i));
-
-		for(int i = 0; i < extendSize.size(); ++i)
+		}
+		for(int i = 0; i < extendSize.size(); ++i){
+			System.out.println("extenw");
 			extendUncertainty(extendAgents.get(i), extendSize.get(i));
+		}
 	}
 
 	private void INIT(ArrayList<String> args){
@@ -294,11 +305,24 @@ public class Game {
 	}	
 
 
-	private void shiftWorldsForEK(String agent, Node n){
-		String nodeName = n.getId();
-		model.removeRelation(nodeName, nodeName, agent);
+	private void shiftWorldsForEK(String agent, Node n) {
+		String nodeName = n.getAttribute("atoms");
+		// remove current relation
+		//model.removeRelation(nodeName, nodeName, agent);
+		
+		//determine next true world(s)
+		
+		/*Iterator<Node> nodes = model.getNodeIterator();
+		while (nodes.hasNext()){
+		
+			Node n1 = nodes.next();
+			if n.
+		}
 		nodeName = "w" + (Integer.parseInt(nodeName.substring(1,nodeName.length())) - 1);
-		model.addRelation(nodeName, nodeName, agent);
+		
+		model.addRelation(nodeName, nodeName, agent);*/
+		
+		System.out.println("nodeName: " + nodeName);
 	}
 
 	//Interconnects relations of w4 up to w (nConnected + 1)
