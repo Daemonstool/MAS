@@ -247,11 +247,12 @@ public class Game {
 				//This is should not done for worlds where ek1 is true or all not EK (w8)
 				//SS should handle these.
 				
-				//Check for each node if it only has a relation to itself for the agent: is reflexive
 				
-				if(model.canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w8") && !n1.getId().contains("ek1"))){
+				ArrayList<String> atoms = n1.getAttribute("atoms");
+				//Check for each node if it only has a relation to itself for the agent: is reflexive
+				if(model.canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w8") && !atoms.contains("ek1"))){
 					//actually shift worlds for EK
-					System.out.println("agent: " + a + " node: " + n1);
+					//TODO
 					shiftNodes.add(n1);
 					shiftAgents.add(a);
 				}
@@ -306,23 +307,34 @@ public class Game {
 
 
 	private void shiftWorldsForEK(String agent, Node n) {
-		String nodeName = n.getAttribute("atoms");
+		String nodeName = n.getId();
 		// remove current relation
-		//model.removeRelation(nodeName, nodeName, agent);
+		model.removeRelation(nodeName, nodeName, agent);
 		
 		//determine next true world(s)
-		
-		/*Iterator<Node> nodes = model.getNodeIterator();
+		Iterator<Node> nodes = model.getNodeIterator();
+		ArrayList<Node> shiftToNodes = new ArrayList<Node>();
 		while (nodes.hasNext()){
-		
-			Node n1 = nodes.next();
-			if n.
+			Node next = nodes.next();
+			if (!n.equals(next) && model.isConsistent(next)){
+				ArrayList<String> atoms = n.getAttribute("atoms");
+				ArrayList<String> nextAtoms = next.getAttribute("atoms");
+				for (int i = 0; i < atoms.size(); ++i){
+					int atomInt = Character.getNumericValue(atoms.get(i).charAt(2));
+					for (int j = 0; j < nextAtoms.size(); ++j)
+					{
+						// if a world contains ek such that it is one lower than the current.
+						if (atomInt - 1 == Character.getNumericValue(nextAtoms.get(j).charAt(2)))
+							shiftToNodes.add(next);
+					}
+				}
+				
+			}
 		}
-		nodeName = "w" + (Integer.parseInt(nodeName.substring(1,nodeName.length())) - 1);
 		
-		model.addRelation(nodeName, nodeName, agent);*/
-		
-		System.out.println("nodeName: " + nodeName);
+		for(Node addNode : shiftToNodes)
+			if (!model.hasRelation(addNode.getId(), addNode.getId(), agent))
+				model.addRelation(addNode.getId(), addNode.getId(), agent);
 	}
 
 	//Interconnects relations of w4 up to w (nConnected + 1)
