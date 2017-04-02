@@ -1,0 +1,2 @@
+javac Game.java
+jar cfm Model.jar manifest.mf Game.java
