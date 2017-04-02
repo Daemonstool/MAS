@@ -181,7 +181,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			if (nodeAtoms.contains(a))
 				ss.append(a);
 			else 
-				ss.append("¬" + a);
+				ss.append(Character.toString((char) 172) + a);
 			
 			ss.append(", ");
 		}
@@ -321,7 +321,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			StringBuilder sb = new StringBuilder();
 			for (String s : atoms)
 			{
-				Formula f = new Knows(new Atom(s),agent);
+				Formula f = new Knows(new Atom(s), agent);
 				f.evaluate(n);
 				sb.append(s);
 			}
@@ -329,17 +329,19 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 	}
 	
-	private void printCommonKnowledge(){
-		for(CommonKnowledge f : this.CK){
+	private void printCommonKnowledge()
+	{
+		for(CommonKnowledge f : this.CK)
 			System.out.println(f.pprint());
-		}
 	}
 
-	public int getWorldCount() {
+	public int getWorldCount() 
+	{
 		return worldCount;
 	}
 
-	public ArrayList<String> getAgents() {
+	public ArrayList<String> getAgents() 
+	{
 		return agents;
 	}
 
@@ -359,7 +361,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			selectedNodes.remove(getNode(id));
 			getNode(id).removeAttribute("ui.color");
 			getNode(id).addAttribute("ui.color", new Color(0, 0, 0));
-		}
+		} 
 		else
 		{
 			selectedNodes.add(getNode(id));
@@ -380,13 +382,10 @@ public class Model extends MultiGraph implements ViewerListener {
 				{
 					Edge e2 = getEdge(n3.getId() + n4.getId());
 					if (e2 != null && selectedNodes.contains(n3) && selectedNodes.contains(n4))
-					{
+
 						e2.setAttribute("ui.label", e2.getAttribute("agents").toString());
-					}
 					else if (e2 != null)
-					{
 						e2.setAttribute("ui.label", "");
-					}
 				}
 			}
 		}
@@ -395,8 +394,8 @@ public class Model extends MultiGraph implements ViewerListener {
 	// e.g.: removes all but w4w4
 	public void removeRelationsForAgentsExcept(String agent, Node n)
 	{
-		for(int w1 = 1; w1 <= worldCount; ++w1){
-			for(int w2 = 1; w2 <= worldCount; ++w2){
+		for (int w1 = 1; w1 <= worldCount; ++w1){
+			for (int w2 = 1; w2 <= worldCount; ++w2){
 				if (hasRelation("w" + w1, "w"+ w2, agent) && !(n.equals(getNode("w" + w1)) && n.equals(getNode("w" + w2)))) {
 					removeRelation("w" + w1, "w" + w2, agent);
 				}
@@ -404,11 +403,13 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 	}	
 
-	public void setCardsleft(int cardsleft) {
+	public void setCardsleft(int cardsleft)
+	{
 		this.cardsleft = cardsleft;
 	}
 
-	public int getCardsleft() {
+	public int getCardsleft()
+	{
 		return cardsleft;
 	}
 
@@ -429,7 +430,8 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 	}
 	
-	public void setWorldCount(int worldCount) {
+	public void setWorldCount(int worldCount)
+	{
 		this.worldCount = worldCount;
 	}
 }
