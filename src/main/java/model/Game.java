@@ -133,7 +133,7 @@ public class Game {
 		}
 
 		if(type.equals("SH")){
-			SH(); //Throw away all knowledge.
+			interConnectAll(); //Throw away all knowledge.
 		}
 
 		if (type.equals("SS"))
@@ -181,35 +181,30 @@ public class Game {
 
 		// We dont have to check for nopes since the message is not sent anyway when someone card(set) is noped.
 		// Hence it is not processed in the model, therefore there is no gain of knowledge.
-		if(type.equals("NP")){
+		if(type.equals("NP"))
+		{
 			// Nothing ... until we keep track of nope cards in kripke worlds.
 		}
 
-		if (type.equals("EK"))
-		{
+		if (type.equals("EK") || type.equals("DF"))
 			if (model.getAgents().size() == 2)
-			{
-				System.out.println("Game Over");
-			}
-		}
-
-		if(type.equals("DF"))
-		{
-
-		}
+				interConnectAll();
+		
 		updateLabels();
-
 	}
 
-	private boolean STF(ArrayList<String> args, int card){
+	private boolean STF(ArrayList<String> args, int card)
+	{
 		String player = args.get(0);
 		boolean EK = false;
 		boolean proceed = false;
 		// EK in STF
-		if (args.size() > card && args.get(card).equals("Explode")){
+		if (args.size() > card && args.get(card).equals("Explode"))
+		{
 			Iterator<Node> nodes = model.getNodeIterator();
 			EK = true;
-			while (nodes.hasNext()){
+			while (nodes.hasNext())
+			{
 				// get each node
 				Node n1 = nodes.next();
 				ArrayList<String> atoms = n1.getAttribute("atoms");
@@ -220,11 +215,13 @@ public class Game {
 				catch (Exception e){
 					proceed = false; // array empty, dont go in next if-statement.
 				}
-				if (proceed && model.isConsistent(n1)) {
+				if (proceed && model.isConsistent(n1)) 
+				{
 					//node contradicts the new information
 					HashSet<String> toRemove = new HashSet<String>();
 					Iterator<Edge> edges = n1.getEdgeIterator();
-					while (edges.hasNext()){
+					while (edges.hasNext())
+					{
 						//search for edges that need to be removed
 						Edge e = edges.next();
 						toRemove.add(e.getId());
@@ -233,14 +230,10 @@ public class Game {
 					for (String e : toRemove)
 						if (model.hasRelation(e,player))
 							model.removeRelation(e, player);
-					
 				} 
-				if (!proceed && model.isConsistent(n1))
-				{
-					// update knowledge
-					if (!model.hasRelation(n1.getId(),  n1.getId(), player))
-						model.addRelation(n1.getId(),  n1.getId(), player);
-				}
+				// update knowledge
+				if (!proceed && model.isConsistent(n1) && !model.hasRelation(n1.getId(),  n1.getId(), player))
+					model.addRelation(n1.getId(),  n1.getId(), player);
 			}
 		}
 		return EK;
@@ -262,13 +255,13 @@ public class Game {
 		return emptyNode;
 	}
 	
-	private void drawCard(ArrayList<String> args){
+	private void drawCard(ArrayList<String> args)
+	{
 		// Shift knowledge about EK to next world for each agent.
 		ArrayList<Node> shiftNodes = new ArrayList<Node>();
 		ArrayList<String> shiftAgents = new ArrayList<String>();
 		ArrayList<String> extendAgents = new ArrayList<String>();
 		//ArrayList<Integer> extendInt = new ArrayList<Integer>();
-		
 		
 		//initially this is w8, set this to keep it initialized.
 		Node compareWith = getEmptyWorld();
@@ -278,35 +271,29 @@ public class Game {
 			nodes = model.getNodeIterator();
 			while (nodes.hasNext()){
 				Node n1 = nodes.next();
-
 				//This is should not done for worlds where ek1 is true or all not EK (w8)
 				//SS should handle these.
-				
-				
 				ArrayList<String> atoms = n1.getAttribute("atoms");
 				//Check for each node if it only has a relation to itself for the agent: is reflexive
 				if(model.canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w8") && !atoms.contains("ek1"))){
 					//actually shift worlds for EK
-
 					shiftNodes.add(n1);
 					shiftAgents.add(a);
 				}
-				
 				// only do this for the world with no knowledge (w8) and the relations are not fully connected (and consistent).
 				if (n1.equals(compareWith) && model.canAccessWorlds(a, n1) != model.getMaxConsistentWorlds())
 					extendAgents.add(a);
 			}
 		}
 
-		for(int i = 0; i < shiftNodes.size(); ++i){
+		for(int i = 0; i < shiftNodes.size(); ++i)
 			shiftWorldsForEK(shiftAgents.get(i), shiftNodes.get(i));
-		}
-		for(int i = 0; i < extendAgents.size(); ++i){
-			System.out.println("extenw");
+		
+		for(int i = 0; i < extendAgents.size(); ++i)
 			extendUncertainty(extendAgents.get(i));
-		}
 	}
 
+	//called for each agent, sets up initial relations.
 	private void INIT(ArrayList<String> args){
 		String agent = args.get(0);
 		model.getAgents().add(agent);
@@ -320,6 +307,7 @@ public class Game {
 	}
 
 	//also check inconsistency.
+	// connects all consistent worlds.
 	private void interConnectAll() {
 		for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
 			if (model.isConsistent(model.getNode("w" + w1)))
@@ -330,12 +318,8 @@ public class Game {
 								model.addRelation("w" + w1, "w" + w2, a);
 	}
 
-
-	private void SH(){
-		interConnectAll();
-	}	
-
-
+	// after a drawcard a world that only has a relation to it self
+	// shifts to a world with one EK higher, e.g.: w(not EK1, not EK2, EK3) goes to w(not EK1, EK2, not EK3)
 	private void shiftWorldsForEK(String agent, Node n) {
 		String nodeName = n.getId();
 		// remove current relation
