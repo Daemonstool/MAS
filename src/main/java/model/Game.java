@@ -24,7 +24,8 @@ public class Game {
 	private ArrayList<String> messages = new ArrayList<String>();
 	private boolean isInitialised;
 	private Socket socket;
-
+	
+	
 	public Game(){
 		this.isInitialised = false;
 		this.model = new Model();
@@ -89,6 +90,7 @@ public class Game {
 		model.display();
 	}
 
+		
 
 	private void update(String type, ArrayList<String> args){
 		if(type.equals("STF")){
@@ -244,17 +246,36 @@ public class Game {
 		return EK;
 	}
 
+	//getEmptyWorld
+	private Node getEmptyWorld()
+	{
+		//initially this is w8, set this to keep it initialized.
+		Node emptyNode = model.getNode("w8");
+		Iterator<Node> nodes = model.getNodeIterator();
+		// use this instead of hard coding for w8.
+		while (nodes.hasNext()){
+			Node n1 = nodes.next();
+			ArrayList<String> atomArray = n1.getAttribute("atoms");
+			if (atomArray.isEmpty())
+				emptyNode = n1;
+		}
+		return emptyNode;
+	}
+	
 	private void drawCard(ArrayList<String> args){
 		// Shift knowledge about EK to next world for each agent.
 		ArrayList<Node> shiftNodes = new ArrayList<Node>();
 		ArrayList<String> shiftAgents = new ArrayList<String>();
 		ArrayList<String> extendAgents = new ArrayList<String>();
-		ArrayList<Integer> extendSize = new ArrayList<>();
+		//ArrayList<Integer> extendInt = new ArrayList<Integer>();
+		
+		
+		//initially this is w8, set this to keep it initialized.
+		Node compareWith = getEmptyWorld();
 
-		String compareWith = "w" + model.getWorldCount();
-
+		Iterator<Node> nodes = model.getNodeIterator();
 		for (String a : model.getAgents()) {
-			Iterator<Node> nodes = model.getNodeIterator();
+			nodes = model.getNodeIterator();
 			while (nodes.hasNext()){
 				Node n1 = nodes.next();
 
@@ -270,24 +291,19 @@ public class Game {
 					shiftNodes.add(n1);
 					shiftAgents.add(a);
 				}
-				/*
-				//
-				for (int i = (model.getWorldCount() - 1) ; i >= 1; --i){
-					if (model.canAccessWorlds(a, n1) == i && (n1.getId().contains(compareWith) && model.isConsistent(n1))){
-						extendAgents.add(a);
-						extendSize.add(i);
-					}
-				}*/
-
+				
+				// only do this for the world with no knowledge (w8) and the relations are not fully connected (and consistent).
+				if (n1.equals(compareWith) && model.canAccessWorlds(a, n1) != model.getMaxConsistentWorlds())
+					extendAgents.add(a);
 			}
 		}
 
 		for(int i = 0; i < shiftNodes.size(); ++i){
 			shiftWorldsForEK(shiftAgents.get(i), shiftNodes.get(i));
 		}
-		for(int i = 0; i < extendSize.size(); ++i){
+		for(int i = 0; i < extendAgents.size(); ++i){
 			System.out.println("extenw");
-			extendUncertainty(extendAgents.get(i), extendSize.get(i));
+			extendUncertainty(extendAgents.get(i));
 		}
 	}
 
@@ -351,27 +367,81 @@ public class Game {
 				model.addRelation(addNode.getId(), addNode.getId(), agent);
 	}
 
-	//Interconnects relations of w4 up to w (nConnected + 1)
-	private void extendUncertainty(String agent, int nConnected){
-		for (int w1 = model.getWorldCount(); w1 >= (model.getWorldCount() - nConnected); --w1)
-			for (int w2 = model.getWorldCount(); w2 >= (model.getWorldCount() - nConnected); --w2)
-				if (!model.hasRelation("w" + w1, "w" + w2, agent)){
-					model.addRelation("w" + w1, "w" + w2, agent);
-					//System.out.println("Adding relation" + "w"+w1+"w"+w2 + "for agent " + agent);
+	//Interconnects relations of all consistent worlds such that (nConnected + 1) are connected in this step
+	//Assumed is that there is at least relation to w8 but not fully connected.
+	private void extendUncertainty(String agent){
+		Iterator<Node> it = model.getNodeIterator();
+		Node emptyNode = getEmptyWorld();
+		ArrayList<String> atomArray = new ArrayList<String>();
+		int lowestEK = 0;
+		
+		// find next world and add relations to it, this is done in 3 steps
+		
+		// 1. Do this by determining the highest connected ekX value 
+		while (it.hasNext())
+		{
+			Node n = it.next();
+			if (model.hasRelation(emptyNode.getId(), n.getId(), agent) && model.isConsistent(n))
+			{
+				atomArray = n.getAttribute("atoms");
+				for (int i = 0; i < atomArray.size(); ++i)
+				{
+					int tmp = Character.getNumericValue(atomArray.get(i).charAt(2));
+					if(tmp < lowestEK || lowestEK == 0)
+						lowestEK = tmp;
 				}
+			}
+		}
+		// 2. determine the world with one EK higher.
+		Node addNode = getEmptyWorld();
+		it = model.getNodeIterator();
+		while (it.hasNext())
+		{
+			Node n = it.next();
+			if (model.isConsistent(n) && !model.hasRelation(emptyNode.getId(), n.getId(), agent) && !n.equals(emptyNode))
+			{
+				atomArray = n.getAttribute("atoms");
+				for (int i = 0; i < atomArray.size(); ++i)
+				{
+					int tmp = Character.getNumericValue(atomArray.get(i).charAt(2));
+					// found the world!
+					if (lowestEK == 0 && tmp == 3)
+						addNode = n;
+					else if (lowestEK != 0 && tmp == lowestEK - 1)
+						addNode = n;
+				}
+			}
+		}
+		
+		// interconnect it with the other worlds
+		it = model.getNodeIterator();
+		while (it.hasNext())
+		{
+			Node n = it.next();
+			if (model.isConsistent(n) && model.hasRelation(n.getId(), emptyNode.getId(), agent))
+			{
+				if (!model.hasRelation(addNode.getId(), n.getId(), agent))
+					model.addRelation(addNode.getId(), n.getId(), agent);
+				
+				if (!model.hasRelation(n.getId(), addNode.getId(), agent))
+					model.addRelation(n.getId(), addNode.getId(), agent);
+					
+				if (!model.hasRelation(addNode.getId(), addNode.getId(), agent))
+					model.addRelation(addNode.getId(), addNode.getId(), agent);
+			}
+		}
+		
 	}
 
 	public void updateLabels() 
 	{
 		Iterator<Node> it = model.getNodeIterator();
-
 		while (it.hasNext())
 		{
 			Node n = it.next();
 			model.buttonPushed(n.getId());
 			model.buttonPushed(n.getId());
 		}
-
 	}
 
 	public static void main(String[] args) {

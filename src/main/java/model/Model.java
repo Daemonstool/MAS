@@ -156,7 +156,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			ArrayList<String> agents = e.getAttribute("agents");
 			agents.add(agent);
 		}
-		System.out.println("Add relation: " + idFrom + idTo + " for " + agent);
+		//System.out.println("Add relation: " + idFrom + idTo + " for " + agent);
 		e.addAttribute("layout.weight", 8);
 	}
 
@@ -228,7 +228,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(e != null){
 			ArrayList<String> agents = e.getAttribute("agents");
 			if(agents.contains(agent)){
-				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
+				System.out.println("Removing relation " + edgeId + " for agent " + agent);
 				agents.remove(agent);
 				if(agents.isEmpty()){
 					removeEdge(edgeId);
@@ -267,6 +267,18 @@ public class Model extends MultiGraph implements ViewerListener {
 			}
 		}
 		return true;
+	}
+	
+	public int getMaxConsistentWorlds(){
+		int n = 0;
+		Iterator<Node> nodes = getNodeIterator();
+		while (nodes.hasNext()){
+			// get each node
+			Node n1 = nodes.next();
+			if (isConsistent(n1))
+				++n;
+		}
+		return n;
 	}
 
 	/* Checks whether how much worlds an agent can reach given a world */
@@ -332,7 +344,7 @@ public class Model extends MultiGraph implements ViewerListener {
 	public void buttonPushed(String id) {
 		// TODO Auto-generated method stub
 
-		Iterator<Edge> it = getNode(id).getEachEdge().iterator();
+		//Iterator<Edge> it = getNode(id).getEachEdge().iterator();
 
 		if (selectedNodes.contains(getNode(id)))
 		{
