@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html land="en">
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+      <title>EK</title>
+      
+      <!-- Dependencies -->
+      <script src="javascript/jquery/jquery-1.12.0.min.js"></script>
+      <script src="javascript/socket.io/socket.io-1.4.5.js"></script>
+
+      <!-- Bootstrap -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+      
+      <!-- Perfect scroll bar -->
+      <link href="stylesheets/perfect-scrollbar/perfect-scrollbar.css" rel="stylesheet" type="text/css">
+      <script src="javascript/perfect-scrollbar/perfect-scrollbar.jquery.js"></script>
+
+      <!-- Game -->
+      <link href="stylesheets/style.css" rel="stylesheet" type="text/css">
+      <script src="javascript/game/constants.js"></script>
+      <script src="javascript/game/EK.js"></script>
+      <script src="javascript/game/rooms.js"></script>
+      <script src="javascript/game/logic.js"></script>
+  </head>
+  <body>
+  	<div class="container-fluid">
+        <div id="login" class="room">
+			
+            <div class="center text-center" id="loginInput">
+                <div class="center">
+                    <div id="title">EXPLODING KETCHUP</div>
+                    <label for="inputdefault">Name</label>
+                    <input class="form-control" id="nameInput" type="text" placeholder="Type a name">
+                    <button id="loginButton" class="btn btn-success" type="button">Join</button>
+                    </br>
+                    <div class="error" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        <div id="lobby" class="room">
+            <div id="gameList" class="col-md-10 col-sm-8 col-xs-12">
+                <div class="top-bar text-center">
+                    Games
+                    <span>
+                        <button id="newGameButton" class="btn btn-success" type="button">New Game</button>
+                    </span>
+                </div>
+                <div class="content scrollable">
+                    <div class="game" data-id='#'>
+                        <div id="top">
+                            <div id="title">GAME</div>
+                            <div id="status">STATUS</div>
+                            <div id="players">PLAYERS</div>
+                        </div>
+                        <div id="bottom">
+                            <button id="joinGameButton" class="btn btn-success" type="button">Join</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="userList" class="col-md-2 col-sm-4 col-xs-12">
+                <div class="top-bar text-center">Connected Users (0)</div>
+                <div class="content scrollable"></div>
+            </div>
+        </div>
+    
+        <div id="game" class="room">
+            <div id="leave">
+                <div id="leaveButton" class="btn btn-danger">X</div>
+            </div>
+            <div id="overlay" style="display: none;">
+                <div id="backdrop"></div>
+                <div id="givePopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                Give x a card.
+                            </div>
+                            <div id="cardInput">
+                                <div id="cardDisplay" class="center text-center scrollable">
+                                    <div data-selected="true" class="card noselect">
+                                        <span>DEFUSE</span>
+                                    </div>
+                                    <div class="card card-selected">
+                                        <span>REGULAR</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="giveCardButton" class="btn btn-success" type="button">Give</button>
+                    </div>
+                </div>
+                <div id="blindStealPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                Take a card from a player.
+                            </div>
+                            <div class="form-group">
+                                <label for="player-select">Select player:</label>
+                                <select class="form-control" id="player-select">
+                                    <option value="1">1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="blindStealButton" class="btn btn-success" type="button">Take</button>
+                        <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
+                    </div>
+                </div>
+                <div id="seeOneSelectPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                See a card from a player.
+                            </div>
+                            <div class="form-group">
+                                <label for="player-select">Select player:</label>
+                                <select class="form-control" id="player-select">
+                                    <option value="1">1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="seeOneButton" class="btn btn-success" type="button">See</button>
+                        <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
+                    </div>
+                </div>
+                <div id="seeThreeSelectPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                See atmost 3 cards from a player.
+                            </div>
+                            <div class="form-group">
+                                <label for="player-select">Select player:</label>
+                                <select class="form-control" id="player-select">
+                                    <option value="1">1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="seeThreeButton" class="btn btn-success" type="button">See atmost 3</button>
+                        <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
+                    </div>
+                </div>
+                <div id="discardStealPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                Take a card from the discard pile.
+                            </div>
+                            <div id="cardInput">
+                                <div id="cardDisplay" class="center text-center scrollable">
+                                    <div data-selected="true" class="card noselect">
+                                        <span>DEFUSE</span>
+                                    </div>
+                                    <div class="card card-selected">
+                                        <span>REGULAR</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="discardStealButton" class="btn btn-success" type="button">Take</button>
+                        <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
+                    </div>
+                </div>
+                <div id="favorWaitPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                Wait for a favor from x.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="namedStealPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                Select card to take from a player.
+                            </div>
+                            <div class="form-group">
+                                <label for="player-select">Select player:</label>
+                                <select class="form-control" id="player-select">
+                                    <option value="1">1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                            <div id="cardInput">
+                                <div id="cardDisplay" class="center text-center scrollable">
+                                    <div data-selected="false" class="card noselect">
+                                        <span>DEFUSE</span>
+                                    </div>
+                                    <div class="card card-selected">
+                                        <span>REGULAR</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="namedStealButton" class="btn btn-success" type="button">Take</button>
+                        <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
+                    </div>
+                </div>
+                <div id="favorSelectPopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                Select a player to give do you a favor.
+                            </div>
+                            <div class="form-group">
+                                <label for="player-select">Select player:</label>
+                                <select class="form-control" id="player-select">
+                                    <option value="1">1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button id="favorSelectButton" class="btn btn-success" type="button">Ask</button>
+                        <button id="cancelPopupButton" class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Cancel</button>
+                    </div>
+                </div>
+                <div id="discardPilePopup" class="popup center text-center">
+                    <div class="container">
+                        <div id="content" >
+                            <div id="text">
+                                Discard pile.
+                            </div>
+                            <div id="cardInput">
+                                <div id="cardDisplay" class="center text-center scrollable">
+                                    <div data-selected="true" class="card noselect">
+                                        <span>DEFUSE</span>
+                                    </div>
+                                    <div class="card card-selected">
+                                        <span>REGULAR</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttonGroup">
+                        <button class="btn btn-danger" type="button" onclick="GameRoom.hideOverlay();">Close</button>
+                    </div>
+                </div>
+            </div>
+            <div id="container">
+                <div id="playArea">
+                    <div class="center text-center" style="width: 100%;">
+                        <div id="text" style="font-size: 2em; font-weight: bold;" >Discard Pile</div>
+                        <div id="cardInput">
+                            <div id="cardDisplay" class="center text-center scrollable">
+                                <div data-selected="true" class="card noselect">
+                                    <span>DEFUSE</span>
+                                </div>
+                                <div class="card noselect">
+                                    <span>REGULAR</span>
+                                </div>
+                                <div class="card noselect">
+                                    <span>REGULAR</span>
+                                </div>
+                                <div class="card noselect">
+                                    <span>REGULAR</span>
+                                </div>
+                                <div class="card noselect">
+                                    <span>REGULAR</span>
+                                </div>
+                                <div class="card noselect">
+                                    <span>REGULAR</span>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div id="playInput" class="text-center">
+                            <button id="showDiscardButton" class="btn btn-success" type="button" onclick="GameRoom.showDiscardPileOverlay();">Show All Discard Pile</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="input" class="text-center" >
+                    <div id="waitingInput">
+                        <button id="startGameButton" class="btn btn-success" type="button">Start Game</button>
+                        <button id="readyGameButton" class="btn btn-success" type="button">Ready</button>
+                    </div>
+                    <div id="playingInput">
+                        <button id="playGameButton" class="btn btn-success" type="button">Play</button>
+                        <button id="drawGameButton" class="btn btn-success" type="button">Draw</button>
+                        <button id="nopeGameButton" class="btn btn-danger" type="button">Nope</button>
+                        <div id="cardInput">
+                            <div id="cardDisplay" class="center text-center scrollable">
+                                <div data-selected="true" class="card noselect">
+                                    <span>DEFUSE</span>
+                                </div>
+                                <div class="card card-selected">
+                                    <span>REGULAR</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="chat">
+                <div id="chatBox" class="col-md-10 col-sm-8 col-xs-12">
+                    <div class="top-bar text-center">
+                        Messages
+                    </div>
+                    <div id="messages" class="content">
+                        <div class="message">
+                            Welcome!
+                        </div>
+                    </div>
+                </div>
+                <div id="playerList" class="col-md-2 col-sm-4 col-xs-12">
+                    <div class="top-bar text-center">
+                        Players ( 0 )
+                    </div>
+                    <div class="content scrollable">
+                        <div class="user">
+                            Bob
+                            <div class="status status-red">
+                                Not Ready
+                            </div>
+                        </div>
+                        <div class="user">
+                            Bobs
+                            <div class="status status-red">
+                                Not Ready
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </body>
+</html>
