@@ -98,8 +98,15 @@ public class Game {
 					ek = true;
 
 			if (!ek){
-				//only w4 is true
-				model.removeRelationsForAgentsExcept(args.get(0), model.getNode("w4"));
+				//only w8 is true
+				Iterator<Node> nodes = model.getNodeIterator();
+				while (nodes.hasNext()){
+					Node n1 = nodes.next();
+					ArrayList<String> atomArray = n1.getAttribute("atoms");
+					if (atomArray.isEmpty())
+						model.removeRelationsForAgentsExcept(args.get(0), n1);
+					
+				}
 			}
 		}
 
@@ -224,6 +231,13 @@ public class Game {
 					for (String e : toRemove)
 						if (model.hasRelation(e,player))
 							model.removeRelation(e, player);
+					
+				} 
+				if (!proceed && model.isConsistent(n1))
+				{
+					// update knowledge
+					if (!model.hasRelation(n1.getId(),  n1.getId(), player))
+						model.addRelation(n1.getId(),  n1.getId(), player);
 				}
 			}
 		}
@@ -252,7 +266,7 @@ public class Game {
 				//Check for each node if it only has a relation to itself for the agent: is reflexive
 				if(model.canAccessWorlds(a, n1) == 1 && (!n1.getId().equals("w8") && !atoms.contains("ek1"))){
 					//actually shift worlds for EK
-					//TODO
+
 					shiftNodes.add(n1);
 					shiftAgents.add(a);
 				}
@@ -278,19 +292,19 @@ public class Game {
 	}
 
 	private void INIT(ArrayList<String> args){
-		String player = args.get(0);
-		model.getAgents().add(player);
 		String agent = args.get(0);
 		model.getAgents().add(agent);
-		for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
-			if(model.isConsistent(model.getNode("w"+w1)))
-				for(int w2 = 1; w2<=model.getWorldCount(); ++w2)
+		for (int w1 = 1; w1 <= model.getWorldCount(); ++w1){
+			if (model.isConsistent(model.getNode("w"+w1)))
+				for(int w2 = 1; w2<=model.getWorldCount(); ++w2){
 					if(model.isConsistent(model.getNode("w" + w2)))
 						model.addRelation("w" + w1, "w" + w2, agent);
+				}
+		}			
 	}
 
 	//also check inconsistency.
-	private void interConnectAll(){
+	private void interConnectAll() {
 		for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
 			if (model.isConsistent(model.getNode("w" + w1)))
 				for (int w2 = 1; w2 <= model.getWorldCount(); ++w2)
