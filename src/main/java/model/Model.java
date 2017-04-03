@@ -205,7 +205,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		Iterator<Edge> edges = getEdgeIterator();
 		while (edges.hasNext()) {
 			Edge e = edges.next();
-			e.setAttribute("ui.label", "");	
+			e.setAttribute("ui.label", "");
 		}
 		
 		Viewer view = super.display();
