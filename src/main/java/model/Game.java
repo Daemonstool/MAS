@@ -1,5 +1,6 @@
 package model;
 
+import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -7,9 +8,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -17,6 +22,7 @@ import org.graphstream.graph.Node;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+
 import logic.Atom;
 import logic.CommonKnowledge;
 
@@ -27,9 +33,12 @@ class Game {
 	private boolean isInitialised;
 	private Socket socket;
 	
+	private DefaultListModel<String> dlm = new DefaultListModel<>();
+	
 	public Game(){
 		this.isInitialised = false;
 		this.model = new Model();
+		
 		try {
 
 			JPanel panel = new JPanel(new GridLayout(0, 1));
@@ -88,10 +97,9 @@ class Game {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		model.display();
 	}
-
-		
 
 	private void update(String type, ArrayList<String> args){
 		if(type.equals("STF")){
@@ -452,4 +460,15 @@ class Game {
 	public static void main(String[] args) {
 		new Game();
 	}
+
+	public void addCommonKnowledge(CommonKnowledge c)
+	{
+		dlm.addElement(c.pprint());
+	}
+	
+	public void removeCommonKnowledge(CommonKnowledge c)
+	{
+		dlm.removeElement(c.pprint());
+	}
 }
+
