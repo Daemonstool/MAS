@@ -19,7 +19,7 @@ public class If implements Formula {
 
 	@Override
 	public String pprint() {
-		return condition.pprint() + "-->" + consequence.pprint();
+		return condition.pprint() + " " + Character.toString((char) 8594) + " " + consequence.pprint();
 	}
 
 }
