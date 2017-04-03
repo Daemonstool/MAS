@@ -18,7 +18,13 @@ import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
 
-import logic.*;
+import logic.And;
+import logic.Atom;
+import logic.CommonKnowledge;
+import logic.Formula;
+import logic.If;
+import logic.Knows;
+import logic.Not;
 
 public class Model extends MultiGraph implements ViewerListener {
 

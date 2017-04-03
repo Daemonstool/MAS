@@ -18,13 +18,12 @@ import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-public class Game {
+class Game {
 
 	private Model model;
 	private ArrayList<String> messages = new ArrayList<String>();
 	private boolean isInitialised;
 	private Socket socket;
-	
 	
 	public Game(){
 		this.isInitialised = false;
@@ -187,8 +186,20 @@ public class Game {
 		}
 
 		if (type.equals("EK") || type.equals("DF"))
+		{
+			System.out.println("agents: " + model.getAgents().size());
 			if (model.getAgents().size() == 2)
+			{
 				interConnectAll();
+				
+				if (type.equals("EK"))
+					System.out.println("Saw a EK");
+				
+				if (type.equals("DF"))
+					System.out.println("Saw a DF");
+			}
+		}
+				
 		
 		updateLabels();
 	}
@@ -309,13 +320,27 @@ public class Game {
 	//also check inconsistency.
 	// connects all consistent worlds.
 	private void interConnectAll() {
-		for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
-			if (model.isConsistent(model.getNode("w" + w1)))
-				for (int w2 = 1; w2 <= model.getWorldCount(); ++w2)
-					if (model.isConsistent(model.getNode("w" + w2)))
-						for (String a : model.getAgents())
+		
+		for (String a : model.getAgents())
+		{
+			for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
+			{
+				if (model.isConsistent(model.getNode("w" + w1)))
+				{
+					for (int w2 = 1; w2 <= model.getWorldCount(); ++w2)
+					{
+						if (model.isConsistent(model.getNode("w" + w2)))
+						{
 							if (!model.hasRelation("w" + w1, "w" + w2, a))
+							{
 								model.addRelation("w" + w1, "w" + w2, a);
+								System.out.println("w" + w1 + " w" + w2 + " ," + a);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// after a drawcard a world that only has a relation to it self
