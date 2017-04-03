@@ -22,6 +22,8 @@ import org.graphstream.graph.Node;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+
+import logic.Atom;
 import logic.CommonKnowledge;
 
 class Game {
@@ -150,6 +152,7 @@ class Game {
 			switch (model.getCardsleft())
 			{
 			case 1: 
+				model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c1")));
 				/*try 
 				{ 
 					model.removeNode("w2");
@@ -162,6 +165,8 @@ class Game {
 				this.interConnectAll();
 				break;
 			case 2:
+				model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c2")));
+				
 				/*try 
 				{ 
 					model.removeNode("w3");
@@ -173,6 +178,7 @@ class Game {
 				model.setWorldCount(2);
 				break;
 			case 3: 
+				model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c3")));
 				/*try 
 				{ 
 					model.removeNode("w4");
@@ -464,7 +470,7 @@ class Game {
 	public static void main(String[] args) {
 		new Game();
 	}
-	
+
 	public void addCommonKnowledge(CommonKnowledge c)
 	{
 		dlm.addElement(c.pprint());
@@ -475,3 +481,4 @@ class Game {
 		dlm.removeElement(c.pprint());
 	}
 }
+
