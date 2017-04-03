@@ -1,4 +1,4 @@
-/**
+/** 
   Exloding Ketchup. 
   A Exploding Kittens clone without kittens.
   Copyright (C) 2016  Mikunj Varsani
@@ -297,6 +297,8 @@ module.exports = function(io, EK) {
             io.emit($.GAME.UPDATE, {
                 game: game.sanitize()
             });
+
+
         });
 
         /**
@@ -376,11 +378,29 @@ module.exports = function(io, EK) {
                         });
                         
                         console.log('Started game: ' + game.id);
+
+                        // Send INIT MESSAGE:
+                        for (var k in EK.connectedUsers) 
+                            if (EK.connectedUsers[k].name == "Admin") // log to admins
+                            { 
+                                for (var i in EK.connectedUsers)
+                                  if (EK.connectedUsers[i].name != "Admin") // Admins themselves do not have cards
+                                  {
+                                    var tmpHandStr = ""; // append cards to this string.
+                                    for (var tmpCard in game.getPlayer(EK.connectedUsers[i]).hand) // player = game.getPlayer(user), then get its hand.
+                                      tmpHandStr = tmpHandStr + " " + game.getPlayer(EK.connectedUsers[i]).hand[tmpCard].name;
+                                    io.to(EK.connectedUsers[k].id).emit('message', "INIT" + " " + EK.connectedUsers[i].name + tmpHandStr);
+                                  }
+                                io.to(EK.connectedUsers[k].id).emit('message', "INITDONE");
+                            }
+                            // End INIT MESSAGE part.
                     } else {
                         socket.emit($.GAME.START, {
                             error: 'Could not start game'
                         });
                     }
+                    
+
                 }
             }
 
@@ -441,11 +461,16 @@ module.exports = function(io, EK) {
                 var player = game.getPlayer(user);
                 
                 //Return the player hand
-                if (player) {
-                    socket.emit($.GAME.PLAYER.HAND, {
-                        player: game.getPlayer(user),
-                        hand: game.getPlayer(user).hand
-                    });
+                if (player) 
+                {
+                  socket.emit($.GAME.PLAYER.HAND, {
+                      player: game.getPlayer(user),
+                      hand: game.getPlayer(user).hand
+                  });
+                
+
+
+
                 }
             }
         });
@@ -503,6 +528,17 @@ module.exports = function(io, EK) {
                         //Make player draw a card and if it is an explode then remove a defuse
                         //If player has no defuse then player is out
                         var drawn = game.drawCards(player, 1);
+                        
+                        var arrayLength = EK.connectedUsers.length;
+                        for (var k in EK.connectedUsers) {
+                            
+                            if (EK.connectedUsers[k].name == "Admin")
+                            {
+                                io.to(EK.connectedUsers[k].id).emit('message', "DC" + " " + player.user.name + " " + drawn[0].name);                                
+                            }
+                            //Do something
+                        }
+
                         socket.emit($.GAME.PLAYER.DRAW, {
                             game: game.sanitize(),
                             cards: drawn,
@@ -530,12 +566,44 @@ module.exports = function(io, EK) {
                             var index = Math.floor(Math.random() * (game.drawPile.length));
                             game.drawPile.splice(index, 0, explode);
                             
+                            var arrayLength = EK.connectedUsers.length;
+                            for (var k in EK.connectedUsers) {
+                                
+                                if (EK.connectedUsers[k].name == "Admin")
+                                {
+                                    io.to(EK.connectedUsers[k].id).emit('message', "DF" + " " + player.user.name);                                
+                                }
+                                //Do something
+                            }
+
                             state = $.GAME.PLAYER.TURN.DEFUSED;
                         } else {
                             //Player exploded
                             state = $.GAME.PLAYER.TURN.EXPLODED;
+
+                            var arrayLength = EK.connectedUsers.length;
+                            for (var k in EK.connectedUsers) {
+                                
+                                if (EK.connectedUsers[k].name == "Admin")
+                                {
+                                    io.to(EK.connectedUsers[k].id).emit('message', "EK" + " " + player.user.name);                                
+                                }
+                                //Do something
+                            }
+
                             game.explodePlayer(player);
                         }
+                    }
+                    
+                    var arrayLength = EK.connectedUsers.length;
+                    for (var k in EK.connectedUsers) {
+                        
+                        if (EK.connectedUsers[k].name == "Admin")
+                        {
+                            io.to(EK.connectedUsers[k].id).emit('message', "SS" + " " + game.drawPile.length) + " " + game.playerAliveCount();
+                        }
+                        //Do something
+                    
                     }
 
                     //Check for a winner
@@ -810,39 +878,32 @@ module.exports = function(io, EK) {
 						var cards2 = EK.pendingSets[data.setId].set.cards;
 						var cardset = "" 
 						for (var k in cards2)
-						{
-							console.log(EK.pendingSets[data.setId].set.cards[k].name);
 							cardset = cardset + EK.pendingSets[data.setId].set.cards[k].name + " ";
-						}
 						
 						cardset = cardset + EK.pendingSets[data.setId].set.nopeAmount;
 						
 						var arrayLength = EK.connectedUsers.length;
-						for (var k in EK.connectedUsers) {
-							
+						for (var k in EK.connectedUsers)
 							if (EK.connectedUsers[k].name == "Admin")
-							{
 								io.to(EK.connectedUsers[k].id).emit('message', "NP" + " " + player.user.name + " " + cardset);
-								console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
-							}
-							//Do something
-						}
-                        var cardSet = new CardSet(player, [card]);
-                        cardSet.effectPlayed = true;
-                        game.discardPile.push(cardSet);
-                        
-						
-                        //Set the nope played and amount
-                        EK.pendingSets[data.setId].set.nopePlayed = true;
-                        EK.pendingSets[data.setId].set.nopeAmount += 1;
-                    
-                        //Notify players that a nope was played
-                        io.in(game.id).emit($.GAME.PLAYER.NOPE, {
-                            player: player,
-                            cards: [card],
-                            game: game.sanitize(),
-                            set: EK.pendingSets[data.setId].set
-                        });
+
+
+            var cardSet = new CardSet(player, [card]);
+            cardSet.effectPlayed = true;
+            game.discardPile.push(cardSet);
+            
+
+            //Set the nope played and amount
+            EK.pendingSets[data.setId].set.nopePlayed = true;
+            EK.pendingSets[data.setId].set.nopeAmount += 1;
+        
+            //Notify players that a nope was played
+            io.in(game.id).emit($.GAME.PLAYER.NOPE, {
+                player: player,
+                cards: [card],
+                game: game.sanitize(),
+                set: EK.pendingSets[data.setId].set
+            });
                         
                     } else {
                         socket.emit($.GAME.PLAYER.NOPE, {
@@ -919,12 +980,12 @@ module.exports = function(io, EK) {
                             //Remove the card from player and give it to other player
                             var card = player.removeCardWithId(data.card);
                             var arrayLength = EK.connectedUsers.length;
-    						for (var k in EK.connectedUsers) {
+    						
+                for (var k in EK.connectedUsers) {
     							
     							if (EK.connectedUsers[k].name == "Admin")
     							{
     								io.to(EK.connectedUsers[k].id).emit('message', "FV" + " " + player.user.name + " " + otherPlayer.user.name + " "  + card.name);
-    								console.log("Admin: " + EK.connectedUsers[k].id + " " + EK.connectedUsers[k].name);
     							}
     							//Do something
     						}
@@ -952,68 +1013,7 @@ module.exports = function(io, EK) {
             }
         });
 
-        /*Deze methode is voor de andere speler om de kaart te selecteren die naar degene gaat die de favor speelt.
-
-        /*socket.on($.GAME.PLAYER.SEEONE, function(data){
-            //Get the game and check if it exists
-            var game = EK.gameList[data.gameId];
-
-            if (game && game.status == $.GAME.STATUS.PLAYING) {
-                var user = EK.connectedUsers[socket.id];
-                var player = game.getPlayer(user);
-                
-                //Check if we have right player
-                if (!data.hasOwnProperty('to') || !EK.connectedUsers[data.to] || !game.getPlayer(EK.connectedUsers[data.to])) {
-                    socket.emit($.GAME.PLAYER.SEEONE, {
-                        error: 'Invalid player'
-                    });
-                    return;
-                }
-                
-                //Check if current user has card
-                if (!data.hasOwnProperty('card') || !game.getPlayer(user).hasCardWithId(data.card)) {
-                    socket.emit($.GAME.PLAYER.SEEONE, {
-                        error: 'Invalid card'
-                    });
-                    return;
-                }
-                
-                //Check if the other person is currently the one doing their turn
-                var other = EK.connectedUsers[data.to];
-                var otherPlayer = game.getPlayer(other);
-                
-                if (otherPlayer === game.playerForCurrentIndex()) {
-                    
-                    //Check if the favor is still possible
-                    if (!effectsPlayed(game, otherPlayer)) {
-                        
-                        //Make sure the last set is still not pending
-                        var lastSet = game.getLastDiscardSet();
-                        if (!EK.pendingSets[lastSet.id]) {
-                            //Select random card from player and notify it to the other player.
-                            var card = player.getRandomCard();
-                            
-                            //Set the effect play
-                            game.getLastDiscardSet().effectPlayed = true;
-
-                            //Notify players of the see one
-                            io.in(game.id).emit($.GAME.PLAYER.SEEONE, {
-                                to: other,
-                                from: user,
-                                card: card
-                            });
-                            return;
-                        }
-                    }
-                }
-                
-                //If we hit here then see one did not go through
-                socket.emit($.GAME.PLAYER.SEEONE, {
-                    error: 'Something went wrong'
-                });
-            }
-        });*/
-
+        
 
     });
     
@@ -1275,11 +1275,14 @@ module.exports = function(io, EK) {
                         //Check if the other player has any cards
                         //Tough luck if a player gets this D:
                         //This can happen if the favor goes through even with nopes and the person has no card
-                        if (otherPlayer && otherPlayer.hand.length < 1) {
+                        if (otherPlayer && otherPlayer.hand.length < 1) 
+                        {
                             socket.emit($.GAME.PLAYER.PLAY, {
                                 error: 'User has no cards in their hand!'
                             });                     
+                        
                             playedSet.effectPlayed = true;
+                        
                         } else {
                             //Ask other player for favor
                             io.in(game.id).emit($.GAME.PLAYER.FAVOR, {
@@ -1398,6 +1401,93 @@ module.exports = function(io, EK) {
                     }
                     break;
 
+                case $.CARD.GIVETOLEFT:
+                    // Get a index from each alive player that passes a card to the next player.
+                    var rotationUsers = [];
+                    var cards = [];
+                    
+                    alivePlayer = game.getPlayer(user); // current player.
+                    var nextIdx = game.cUserIndex;
+                    for (var i = 0; i < game.playerAliveCount(); i++) 
+                    {
+                        cards[i] = alivePlayer.getRandomCard(); // may be undefined.
+                        
+                        nextIdx = game.getNextAliveIndex(nextIdx);
+                        alivePlayer = game.playerFromIndex(nextIdx);
+                    }
+                    
+                    alivePlayer = game.getPlayer(user); // current player.
+                    var nextIdx = game.cUserIndex;
+                    for (var i = 0; i < game.playerAliveCount(); i++)
+                    {
+                        
+                        if (cards[i] != null)
+                        {
+                            alivePlayer.removeCard(cards[i]);
+                        }
+                        
+                        rotationUsers[i] = alivePlayer.user;
+
+                        nextIdx = game.getNextAliveIndex(nextIdx)
+                        alivePlayer = game.playerFromIndex(nextIdx);
+                        
+                        if (cards[i] != null)
+                        {
+                            alivePlayer.addCard(cards[i]);
+                        }
+                    }
+
+                    //debug 
+                    /*
+                    for (var i = 0; i < game.playerAliveCount(); i++)
+                    {
+                    
+                        for (var j = 0; j < alivePlayer.hand.length; j++) {
+                            console.log("user: " + alivePlayer.user.name);
+                            console.log("hand: " + alivePlayer.hand[j].name);
+                            nextIdx = game.getNextAliveIndex(nextIdx);
+                            alivePlayer = game.playerFromIndex(nextIdx);
+                            console.log('\n');
+                        }
+                    }*/
+
+                    console.log(cards);
+                    io.in(game.id).emit($.GAME.PLAYER.GIVETOLEFT, {
+                        cards: cards,
+                        rotUsers: rotationUsers,
+                    });
+
+                    var arrayLength = EK.connectedUsers.length;
+                    for (var k in EK.connectedUsers) {
+                        
+                        if (EK.connectedUsers[k].name == "Admin")
+                        {
+                            alivePlayer = game.getPlayer(user); // current player.
+                            var nextIdx = game.cUserIndex;
+                    
+                            for (var i = 0; i < game.playerAliveCount(); i++) 
+                            {
+                                
+                                if (cards[i] != null){
+                                io.to(EK.connectedUsers[k].id).emit('message', 
+                                    "SP" + " " + alivePlayer.user.name + " " + 
+                                    game.playerFromIndex(game.getNextAliveIndex(nextIdx)).user.name + " " +
+                                    cards[i].name);
+                                
+                                } else {
+                                io.to(EK.connectedUsers[k].id).emit('message', 
+                                    "SP" + " " + alivePlayer.user.name + " " + 
+                                    game.playerFromIndex(game.getNextAliveIndex(nextIdx)).user.name + " " +
+                                    "nothing");
+                                }
+                                nextIdx = game.getNextAliveIndex(nextIdx)
+                                alivePlayer = game.playerFromIndex(nextIdx);
+                            }
+                        }
+                    }
+
+                    break;
+
                 case $.CARD.FUTURE:
                     //Get the first 3 cards on the top of the draw pile
                     var futureCards = [];
@@ -1509,11 +1599,17 @@ module.exports = function(io, EK) {
         }
         
         if (pending.set.nopePlayed) {
+            //for (var k in EK.connectedUsers) 
+            //    if (EK.connectedUsers[k].name == "Admin") // log to admins
+            //        io.to(EK.connectedUsers[k].id).emit('message', "NPINIT");
+            
             //Poll the set
             EK.pendingSets[playedSet.id].set.nopePlayed = false;
             setTimeout(function() {
                 checkNopes(pending.set, data, socket, game);
-            }, game.nopeTime);
+                }, game.nopeTime);
+            
+
         } else {
             
             //If there is an even amount of nopes played then we can process
@@ -1533,6 +1629,10 @@ module.exports = function(io, EK) {
                     canNope: false
                 });
             }
+
+            //for (var k in EK.connectedUsers) 
+            //    if (EK.connectedUsers[k].name == "Admin") // log to admins
+            //        io.to(EK.connectedUsers[k].id).emit('message', "NPEND");
             
             //Remove the set from pending
             EK.removePendingSet(pending.set);

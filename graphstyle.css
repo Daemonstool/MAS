@@ -3,24 +3,30 @@ graph{
 }
 
 node{
+    fill-mode: dyn-plain;
     text-background-color: #A9A9A9;
     text-background-mode: rounded-box;
-    text-alignment: at-left;
-    text-padding: 7px, 5px;
-    text-offset: -10px, 0px;
-    text-size: 14;
+    text-alignment: under;
+    text-padding: 0px, 0px;
+    text-offset: 0px, 0px;
+    text-size: 12;
     text-style: bold;
+    size: 10px, 10px;
+    padding: 3px;
 }
 
 edge{
     text-background-color: #A9A9A9;
 	text-background-mode: rounded-box;
     text-alignment: along;
-    text-padding: 3px;
-    text-size: 14;
+    text-padding: 0px;
+    text-size: 12;
     text-offset: 0px, 20px;
+
     stroke-mode: plain;
     stroke-width: 1.2;
+
+    
 }
 
 edge.symmetric{

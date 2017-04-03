@@ -1,199 +1,263 @@
 package model;
 
-import java.awt.GridLayout;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Scanner;
+import java.util.TreeSet;
 
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JScrollPane;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.view.Viewer;
+import org.graphstream.ui.view.ViewerListener;
+import org.graphstream.ui.view.ViewerPipe;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
+import logic.And;
 import logic.Atom;
+import logic.CommonKnowledge;
 import logic.Formula;
+import logic.If;
 import logic.Knows;
+import logic.Not;
+import logic.Or;
 
-public class Model extends MultiGraph {
-	
+public class Model extends MultiGraph implements ViewerListener {
+
 	private int worldCount;
 
-	private ArrayList<String> messages = new ArrayList<>();
+	private ArrayList<String> clickedWorlds = new ArrayList<String>();
+	private ArrayList<String> agents;
+	private ArrayList<Node> selectedNodes = new ArrayList<Node>();
+	private TreeSet<String> atoms = new TreeSet<String>();//set of all unique atoms in the model. For each atom each node must have a truth assignment
+	private ArrayList<CommonKnowledge> CK = new ArrayList<CommonKnowledge>();
+
+	private DefaultListModel<String> dlm = new DefaultListModel<>();
+
+	private int cardsleft = Integer.MAX_VALUE;
 
 	public Model() {
 		super("Arbitrary String #1");
 		this.worldCount = 0;
+		this.agents = new ArrayList<String>();
+		this.atoms = new TreeSet<String>();
 
-		Socket socket;
-		try {
+		this.atoms.add("ek1");
+		this.atoms.add("ek2");
+		this.atoms.add("ek3");
 
-			JTextField field1 = new JTextField("");
-			JTextField field2 = new JTextField("");
-			JPanel panel = new JPanel(new GridLayout(0, 1));
-			panel.add(new JLabel("IP (default localhost):"));
-			panel.add(field1);
-			panel.add(new JLabel("port (default 3000):"));
-			panel.add(field2);
 
-			String ip = "localhost";
-			String port = "3000";
+		CommonKnowledge c1 = new CommonKnowledge(new If(new Atom("ek1"), new And(new Not(new Atom("ek2")),new Not(new Atom("ek3")))));
+		CommonKnowledge c2 = new CommonKnowledge(new If(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3")))));
+		CommonKnowledge c3 = new CommonKnowledge(new If(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2")))));
+		
+		
+		
+		CommonKnowledge card1 = new CommonKnowledge(new If(new Atom("c3"), new Or(new Atom("ek1"), new Or(new Atom("ek2"), new Atom("ek3")))));
+		CommonKnowledge card2 = new CommonKnowledge(new If(new Atom("c2"), new Not(new Atom("ek3"))));
+		CommonKnowledge card3 = new CommonKnowledge(new If(new Atom("c1"), new Not(new Atom("ek2"))));
+		
+		this.CK.add(c1);
+		this.CK.add(c2);
+		this.CK.add(c3);
+		this.CK.add(card1);
+		this.CK.add(card2);
+		this.CK.add(card3);
+		
+		dlm.addElement(c1.pprint());
+		dlm.addElement(c2.pprint());
+		dlm.addElement(c3.pprint());
+		dlm.addElement(card1.pprint());
+		dlm.addElement(card2.pprint());
+		dlm.addElement(card3.pprint());
 
-			String[] buttons = { "Connect", "Exit" };
+		
+		CommonKnowledgeFrame sl = new CommonKnowledgeFrame();
+	    sl.setVisible(true);
 
-			int result = JOptionPane.showOptionDialog(null, panel, "Connect to game", JOptionPane.WARNING_MESSAGE, 0,
-					null, buttons, buttons[0]);
-
-			System.out.println(result);
-
-			if (result == 0) {
-				ip = (field1.getText().isEmpty()) ? "localhost" : field1.getText();
-				port = (field2.getText().isEmpty()) ? "3000" : field2.getText();
-			} else if (result == 1) {
-				System.exit(0);
-			}
-
-			socket = IO.socket("http://" + ip + ":" + port);
-			socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-
-				@Override
-				public void call(Object... args) {
-					socket.emit("connection", "hi");
-					System.out.println("Connected");
-				}
-
-			}).on("message", new Emitter.Listener() {
-
-				@Override
-				public void call(Object... args) {
-					String message = args[0].toString();
-					messages.add(message);
-					String[] substrings = message.split(" ");
-					if(substrings.length > 0){
-						String type = substrings[0];
-						ArrayList<String> arguments = new ArrayList<String>(Arrays.asList(Arrays.copyOfRange(substrings,1,substrings.length)));
-						System.out.println("New message of type " + type + " with arguments " + arguments.toString());
-						update(type,arguments);
-					}else{
-						System.err.println("Invalid message: " + message);
-					}
-				}
-
-			}).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-
-				@Override
-				public void call(Object... args) {
-					System.out.println("Disconnected");
-				}
-
-			});
-			socket.connect();
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		addNode(getWorldName());
-		addNode(getWorldName());
-		addNode(getWorldName());
-
-		Iterator<Node> nodes = getNodeIterator();
-		Random r = new Random();
-		while (nodes.hasNext()) {
-			Node n = nodes.next();
-			if (r.nextBoolean())
-				addAtom(n.getId(), "p");
-			if (r.nextBoolean())
-				addAtom(n.getId(), "q");
-			n.setAttribute("ui.label", n.getAttribute("atoms").toString());
-		}
-
-		addEdge("w1w2", "w1", "w2");
-		addEdge("w1w1", "w1", "w1");
-		addEdge("w1w3", "w1", "w3");
-		addEdge("w3w1", "w3", "w1");
-		addEdge("w2w3", "w2", "w3");
-		addAgent("w1w2", "Henk");
-		addAgent("w1w2", "Joost");
-		addAgent("w2w3", "Henry");
-
-		addAgent("w1w3", "Up");
-		addAgent("w3w1", "Down");
-		addAgent("w1w1", "Henk");
-
-		System.out.println(new Atom("p").evaluate(getNode("w1")));
-		System.out.println(new Atom("p").evaluate(getNode("w2")));
-		System.out.println(new Atom("p").evaluate(getNode("w3")));
-		Formula f = new Knows(new Atom("p"), "Henk");
-		System.out.println(f.evaluate(getNode("w1")));
-
-		System.out.println();
-
-		display();
+		//printCommonKnowledge();
+		
+		initWorlds(0,new ArrayList<String>(atoms));
 	}
-	
-	private String getWorldName(){
+
+	private void initWorlds(int idx, ArrayList<String> atoms){
+		//creates all worlds to have all combinations of atoms present
+		ArrayList<String> negation = new ArrayList<String>(atoms);
+		negation.remove(idx);
+		if (idx == atoms.size()-1){
+			//base case, add worlds
+			String id = addNode("").getId();
+			for (String a : atoms){
+				addAtom(id,a);
+			}
+			id = addNode("").getId();
+			for (String a : negation){
+				addAtom(id,a);
+			}
+		} else {
+			initWorlds(idx+1,atoms);
+			initWorlds(idx,negation);
+		}
+	}
+
+	private String getNextWorldName()
+	{
 		//generate the next world id
 		return "w" + ++worldCount;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Node addNode(String id) {
-		Node n = super.addNode(id);
+	public Node addNode(String dump) {
+		Node n = super.addNode(getNextWorldName());
 		n.setAttribute("atoms", new ArrayList<String>());
 		return n;
 	}
 
-	public void addAtom(String node, String atom) {
+	public void addAtom(String node, String atom) 
+	{
 		Node n = getNode(node);
-		ArrayList<String> atoms = n.getAttribute("atoms");
-		atoms.add(atom);
+		ArrayList<String> nodeAtoms = n.getAttribute("atoms");
+		nodeAtoms.add(atom);
+		if (!this.atoms.contains(atom)){
+			//update the set of all atoms in the model
+			this.atoms.add(atom);
+		}
+	}
+	
+	public void addToAllNodes(String atom){
+		Iterator<Node> nodes = iterator();
+		while(nodes.hasNext()){
+			Node n = nodes.next();
+			addAtom(n.getId(),atom);
+		}
+		
+		
+		
 	}
 
+	public void constructFromFile(String s)
+	{
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(s));
+
+			String line;
+			while ((line = in.readLine()) != null)
+			{
+				String[] args = line.split(" ");
+				if (args.length == 2)
+					addAtom(args[0], args[1]);
+				else if (args.length == 4 && args[2].equals("B"))
+				{
+					addRelation(args[0], args[1], args[3]);
+					addRelation(args[1], args[0], args[3]);
+				}
+				else if (args.length == 4 && args[2].equals("D"))
+					addRelation(args[0], args[1], args[3]);
+			}
+			in.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	public DefaultListModel<String> getDLM()
+	{
+		return this.dlm;
+	}
+	
+	public ArrayList<CommonKnowledge> getCommonKnowledge()
+	{
+		return this.CK;
+	}
 	@Override
 	@SuppressWarnings("unchecked")
-	public Edge addEdge(String id, String idFrom, String idTo) {
+	public Edge addEdge(String agent, String idFrom, String idTo) 
+	{
+		//Adds an edge between two world, with at least one agent
+		//DIRECT USE NOT RECOMMENDED
+		//This method assumes the edge doesn't already exist, you'll have to check this before
+		//Using addRelation() does this for you.
+		//(but we could not make this method private as it is inherited)
 		Edge e = super.addEdge(idFrom + idTo, idFrom, idTo, true);
 		if (getEdge(idTo + idFrom) != null) {
 			// symmetric relation, do some styling
-			System.out.println(e.getId());
 			e.setAttribute("ui.class", "symmetric");// tag only applies to one
-													// side to separate the
-													// labels
+			// side to separate the labels
 		}
-		if (idFrom.equals(idTo)) {
+		if (idFrom.equals(idTo)) 
+		{
 			// reflexive relation, tag it
 			e.setAttribute("ui.class", "reflexive");
 		}
-		e.setAttribute("agents", new ArrayList<String>());
+		ArrayList<String> agents = new ArrayList<String>();
+		agents.add(agent);
+		e.setAttribute("agents", agents);
 		return e;
 	}
 
-	public void addAgent(String edge, String agent) {
-		Edge e = getEdge(edge);
-		ArrayList<String> agents = e.getAttribute("agents");
-		agents.add(agent);
+	public void addRelation(String idFrom, String idTo, String agent) 
+	{
+		//adds a relation for an agent between two worlds
+		Edge e = getEdge(idFrom+idTo);
+		if (e == null)
+		{
+			//need to add the edge
+			e = addEdge(agent,idFrom,idTo);
+		} else 
+		{
+			ArrayList<String> agents = e.getAttribute("agents");
+			agents.add(agent);
+		}
+		//System.out.println("Add relation: " + idFrom + idTo + " for " + agent);
+		e.addAttribute("layout.weight", 8);
 	}
-
-	public ArrayList<String> getAtoms(String node) {
+	
+	public void addRelation(String edge, String agent)
+	{
+		addRelation("w" + edge.split("w")[1], "w" + edge.split("w")[2], agent );
+	}
+	
+	public ArrayList<String> getAtoms(String node) 
+	{
 		return getNode(node).getAttribute("atoms");
 	}
 
+	private String constructNodeLabel(Node n)
+	{
+		ArrayList<String> nodeAtoms = n.getAttribute("atoms");
+		StringBuilder ss = new StringBuilder(n.getId() + ": ");
+		for (String a : atoms)
+		{
+			if (nodeAtoms.contains(a))
+				ss.append(a);
+			else 
+				ss.append(Character.toString((char) 172) + a);
+			
+			ss.append(", ");
+		}
+		ss.delete(ss.length()-2,ss.length());
+		return ss.toString();
+	}
+
 	@Override
-	public Viewer display() {
+	public Viewer display() 
+	{
 		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 		addAttribute("ui.antialias");
 		addAttribute("ui.quality");// remove if real-time rendering becomes laggy
@@ -211,71 +275,246 @@ public class Model extends MultiGraph {
 		addAttribute("ui.stylesheet", stylesheet);
 
 		Iterator<Node> nodes = getNodeIterator();
+
 		while (nodes.hasNext()) {
 			Node n = nodes.next();
+			n.addAttribute("ui.color", new Color(0, 0, 0));
+			n.setAttribute("ui.label", constructNodeLabel(n));
+		}
+		Iterator<Edge> edges = getEdgeIterator();
+		while (edges.hasNext()) {
+			Edge e = edges.next();
+			e.setAttribute("ui.label", "");
+		}
+		
+		Viewer view = super.display();
+		
+		ViewerPipe viewPipe = view.newViewerPipe();
+		viewPipe.addViewerListener(this);
+		viewPipe.addSink(this);
+		viewPipe.pump();
+
+		while (true) {
+			viewPipe.pump();
+		}
+	}
+
+	public void removeRelation(String edgeId, String agent)
+	{
+		//remove a relation for an agent between two worlds
+		Edge e = getEdge(edgeId);
+		if(e != null){
+			ArrayList<String> agents = e.getAttribute("agents");
+			if(agents.contains(agent)){
+				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
+				agents.remove(agent);
+				if(agents.isEmpty()){
+					removeEdge(edgeId);
+				}
+				return;
+			}
+		}
+		System.err.println("Tried to remove agent " + agent + "on relation " + edgeId + "while that relation wasn't there!");
+	}
+
+	public void removeRelation(String idFrom, String idTo, String agent)
+	{
+		//remove a relation for an agent between two worlds
+		removeRelation(idFrom+idTo,agent);
+	}
+
+	public boolean hasRelation(String edgeId, String agent)
+	{
+		Edge e = getEdge(edgeId);
+		if(e != null)
+		{
+			ArrayList<String> agents = e.getAttribute("agents");
+			return agents.contains(agent);
+		} else
+			return false;
+	}
+
+	public boolean hasRelation(String idFrom, String idTo, String agent)
+	{
+		return hasRelation(idFrom+idTo,agent);
+	}
+
+	public boolean isConsistent(Node n)
+	{
+		//returns whether a node is possible given the common knowledge rules
+		for (CommonKnowledge c : CK){
+			if (!c.getFormula().evaluate(n)){
+				//System.out.println("Node " + n.getId() + " is inconsistent with rule " + c.pprint() + ": " + n.getAttribute("atoms").toString());
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public int getMaxConsistentWorlds(){
+		int n = 0;
+		Iterator<Node> nodes = getNodeIterator();
+		while (nodes.hasNext()){
+			// get each node
+			Node n1 = nodes.next();
+			if (isConsistent(n1))
+				++n;
+		}
+		return n;
+	}
+
+	/* Checks whether how much worlds an agent can reach given a world */
+	public int canAccessWorlds(String agent, Node n)
+	{
+		Iterator<Edge> it =  n.getEachLeavingEdge().iterator();
+		int accessCount = 0;
+		while (it.hasNext())
+		{
+			Edge e = it.next();
+			ArrayList<String> agents = e.getAttribute("agents");
+			if (agents.contains(agent))
+				++accessCount;
+		}
+		return accessCount;
+	}
+
+	private void canAccessWorlds(String agent)
+	{	
+		Iterator<Node> nodes = getNodeIterator();
+		while (nodes.hasNext())
+		{
+			Node n = nodes.next();
+			ArrayList<String> atoms = n.getAttribute("atoms");
+			StringBuilder sb = new StringBuilder();
+			for (String s : atoms)
+			{
+				Formula f = new Knows(new Atom(s), agent);
+				f.evaluate(n);
+				sb.append(s);
+			}
+			System.out.println("Agent: " + agent + " can access " + n.getId() + " with " + sb.toString());
+		}
+	}
+	
+	private void printCommonKnowledge()
+	{
+		for(CommonKnowledge f : this.CK)
+			System.out.println(f.pprint());
+	}
+
+	public int getWorldCount() 
+	{
+		return worldCount;
+	}
+
+	public ArrayList<String> getAgents() 
+	{
+		return agents;
+	}
+
+	@Override
+	public void buttonReleased(String id) {}
+
+	@Override
+	public void viewClosed(String viewName) {}
+
+	@Override
+	public void buttonPushed(String id) {
+		// TODO Auto-generated method stub
+
+		//Iterator<Edge> it = getNode(id).getEachEdge().iterator();
+		if (selectedNodes.contains(getNode(id)))
+		{
+			selectedNodes.remove(getNode(id));
+			getNode(id).removeAttribute("ui.color");
+			getNode(id).addAttribute("ui.color", new Color(0, 0, 0));
+		} 
+		else
+		{
+			selectedNodes.add(getNode(id));
+			getNode(id).removeAttribute("ui.color");
+			getNode(id).addAttribute("ui.color", new Color(255, 0, 0));
+		}
+
+		Iterator<Node> it3 = super.getNodeIterator();
+
+		while (it3.hasNext())
+		{
+			Node n3 = it3.next();
+			Iterator<Node> it4 = super.getNodeIterator();
+			while (it4.hasNext())
+			{
+				Node n4 = it4.next();
+				if (n3 != null && n4 != null)
+				{
+					Edge e2 = getEdge(n3.getId() + n4.getId());
+					if (e2 != null && selectedNodes.contains(n3) && selectedNodes.contains(n4))
+
+						e2.setAttribute("ui.label", e2.getAttribute("agents").toString());
+					else if (e2 != null)
+						e2.setAttribute("ui.label", "");
+				}
+			}
+		}
+	}
+
+	// e.g.: removes all but w4w4
+	public void removeRelationsForAgentsExcept(String agent, Node n)
+	{
+		for (int w1 = 1; w1 <= worldCount; ++w1){
+			for (int w2 = 1; w2 <= worldCount; ++w2){
+				if (hasRelation("w" + w1, "w"+ w2, agent) && !(n.equals(getNode("w" + w1)) && n.equals(getNode("w" + w2)))) {
+					removeRelation("w" + w1, "w" + w2, agent);
+				}
+			}
+		}
+	}	
+
+	public void setCardsleft(int cardsleft)
+	{
+		this.cardsleft = cardsleft;
+	}
+
+	public int getCardsleft()
+	{
+		return cardsleft;
+	}
+
+	public void assignLabels()
+	{
+
+		Iterator<Node> nodes = getNodeIterator();
+
+		while (nodes.hasNext()) {
+			Node n = nodes.next();
+			n.addAttribute("ui.color", new Color(0, 0, 0));
 			n.setAttribute("ui.label", " " + n.getId() + ": " + n.getAttribute("atoms").toString());
 		}
 		Iterator<Edge> edges = getEdgeIterator();
 		while (edges.hasNext()) {
 			Edge e = edges.next();
-			e.setAttribute("ui.label", e.getAttribute("agents").toString());
+			e.setAttribute("ui.label", "");	
 		}
-
-		return super.display();
 	}
 	
-	private void update(String type, ArrayList<String> args){
-		switch(type){
-			case "STF":
-				
-				break;
-			case "BS":
-				
-				break;
-			case "NS":
-				
-				break;
-			case "DS":
-				
-				break;
-			case "NP":
-				
-				break;
-			case "SH":
-				
-				break;
-			case "EK":
-				
-				break;
-			case "ATT":
-				
-				break;
-			case "FV":
-				
-				break;
-			case "S1":
-				Node n = addNode(getWorldName());
-				addAtom(n.getId(),"c1");
-				break;
-			case "S3":
-				
-				break;
-			case "AF":
-				
-				break;
-			case "SP":
-				
-				break;
-			case "DC":
-				
-				break;
-			default:
-				
-				break;
-		}
+	public void setWorldCount(int worldCount)
+	{
+		this.worldCount = worldCount;
 	}
+	
+	public class CommonKnowledgeFrame extends JFrame {
 
-	public static void main(String[] args) {
-		new Model();
+		  JScrollPane scrollpane;
+
+		  public CommonKnowledgeFrame() {
+		    super("Common Knowledge");
+		    setSize(300, 200);
+		    setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+		    JList<String> list = new JList<>(dlm);
+		    scrollpane = new JScrollPane(list);
+		    
+		    getContentPane().add(scrollpane, BorderLayout.CENTER);
+		  }
 	}
 }

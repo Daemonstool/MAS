@@ -64,7 +64,8 @@ var $C = {
             FUTURE: 'playerFuture',
             NOPE: 'playerNope',
             SEEONE: 'playerSeeOne',
-            SEETHREE: 'playerSeeThree'
+            SEETHREE: 'playerSeeThree',
+            GIVETOLEFT: 'playerGiveToLeft'
         },
         REMOVED: 'gameRemoved'
     },
@@ -86,7 +87,8 @@ var $C = {
         REGULAR: 'Regular',
         REVERSE: 'Reverse',
         SEEONE: 'See one card',
-        SEETHREE: 'See three cards'
+        SEETHREE: 'See three cards',
+        GIVETOLEFT: 'Give to left',
     },
     
     CARDSET: {

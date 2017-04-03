@@ -303,6 +303,15 @@ Game.prototype.playerForCurrentIndex = function() {
 }
 
 /**
+ * Get player for the current user index
+ * @returns {Object} The player
+ */
+Game.prototype.playerFromIndex = function(index) {
+    return this.players[index];
+}
+
+
+/**
  * Draw cards from the pile and adds it to the players hand
  * @param   {Object} player The player
  * @param   {Number} amount Amount of cards to draw
@@ -383,18 +392,18 @@ Game.prototype.resetDeck = function() {
             //Special
            
             // commented out for testing: 
-            this.drawPile.push(new Card(this.generateRandomID(), 'Attack', $.CARD.ATTACK, 0));
+            //this.drawPile.push(new Card(this.generateRandomID(), 'Attack', $.CARD.ATTACK, 0));
             //this.drawPile.push(new Card(this.generateRandomID(), 'Skip', $.CARD.SKIP, 1));
-            //this.drawPile.push(new Card(this.generateRandomID(), 'Favor', $.CARD.FAVOR, 2));
-            //this.drawPile.push(new Card(this.generateRandomID(), 'Shuffle', $.CARD.SHUFFLE, 3));
+            this.drawPile.push(new Card(this.generateRandomID(), 'Favor', $.CARD.FAVOR, 2));
+            this.drawPile.push(new Card(this.generateRandomID(), 'Shuffle', $.CARD.SHUFFLE, 3));
             
             this.drawPile.push(new Card(this.generateRandomID(), 'SeeOne', $.CARD.SEEONE, 10));
             this.drawPile.push(new Card(this.generateRandomID(), 'SeeThree', $.CARD.SEETHREE, 11));
-
+            this.drawPile.push(new Card(this.generateRandomID(), 'GiveToLeft', $.CARD.GIVETOLEFT, 12));
             //Only add the reverse if we have more than 2 players since with 2 people order doesn't matter
-            if (this.players.length > 2) {
-                this.drawPile.push(new Card(this.generateRandomID(), 'Reverse', $.CARD.REVERSE, 3));
-            }
+            //if (this.players.length > 2) {
+            //    this.drawPile.push(new Card(this.generateRandomID(), 'Reverse', $.CARD.REVERSE, 3));
+            //}
             
             //Regular
             //this.drawPile.push(new Card(this.generateRandomID(), 'Tomato', $.CARD.REGULAR, 4));
@@ -406,7 +415,7 @@ Game.prototype.resetDeck = function() {
         }
         
         this.drawPile.push(new Card(this.generateRandomID(), 'Future', $.CARD.FUTURE, 9));
-        this.drawPile.push(new Card(this.generateRandomID(), 'Nope', $.CARD.NOPE, 3));
+        //this.drawPile.push(new Card(this.generateRandomID(), 'Nope', $.CARD.NOPE, 3));
     }
 }
 

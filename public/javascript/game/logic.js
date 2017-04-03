@@ -849,6 +849,62 @@ jQuery(document).ready(function($) {
         }
     });
 
+    function mod(n, m) {
+            return ((n % m) + m) % m;
+    }
+    
+    io.on($C.GAME.PLAYER.GIVETOLEFT, function(data) {
+        if (data.hasOwnProperty('error'))   
+            GameRoom.logError(data.error);
+        else 
+        {
+            
+            var game = main.getCurrentUserGame();
+            var currentUser = main.getCurrentUser();
+
+            //Removed cards associated with the playerIdx
+            var cards = data.cards;
+            var rotUsers = data.rotUsers;
+        
+            for(var userIdx = 0; userIdx < rotUsers.length; userIdx++)
+            {
+                
+                var current = rotUsers[userIdx].name;
+                var to = rotUsers[mod((userIdx + 1), rotUsers.length)].name;
+                var from = rotUsers[mod((userIdx - 1), rotUsers.length)].name;
+
+                if (rotUsers[mod((userIdx + 1), rotUsers.length)].id == currentUser.id)
+                    to = "you";
+                if (rotUsers[mod((userIdx - 1), rotUsers.length)].id == currentUser.id)
+                    from = "you";
+
+                if (rotUsers[userIdx].id == currentUser.id)
+                    current = "you";
+                
+
+                // Given
+                if (cards[userIdx] != null)
+                    GameRoom.logSystemGreen(current + " gave a " + cards[userIdx].name + " to " + to + ".");
+                else 
+                    GameRoom.logSystemGreen(current + " gave nothing to " + to + ".");
+                
+
+                // Received
+
+                if (cards[mod(userIdx - 1, rotUsers.length)] != null)
+                    GameRoom.logSystemGreen(current + " got a " + cards[mod(userIdx - 1, rotUsers.length)].name + " from " + from + ".");
+                else
+                    GameRoom.logSystemGreen(current + " got nothing from " + from + ".");
+                
+            }
+            
+        }
+        //update all hands:
+        io.emit($C.GAME.PLAYER.HAND, { gameId: game.id }); 
+        //Get the discard pile
+        io.emit($C.GAME.DISCARDPILE, { gameId: game.id });        
+    });
+
     io.on($C.GAME.PLAYER.SEETHREE, function(data) {
 
         if (data.hasOwnProperty('error'))   
@@ -882,19 +938,6 @@ jQuery(document).ready(function($) {
                     GameRoom.logLocal(fromString + " saw a " + cards[i].name + " from " + toString);
             }
         }
-        /*        var cards = data.cards;
-        if (cards.length > 0) {
-            //Tell player of the cards they see
-            var string = "You see a ";
-            $.each(cards, function(index, card) {
-                string += card.name + ', ';
-            });
-            string = string.slice(0, -2); //Remove ', '
-            GameRoom.logLocal(string);
-        } else {
-            GameRoom.logLocal('There is nothing to see!');
-        }*/
-
     }); 
 
 
