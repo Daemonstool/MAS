@@ -27,9 +27,7 @@ import org.graphstream.ui.view.ViewerPipe;
 import logic.And;
 import logic.Atom;
 import logic.CommonKnowledge;
-import logic.Formula;
 import logic.If;
-import logic.Knows;
 import logic.Not;
 import logic.Or;
 
@@ -37,7 +35,7 @@ public class Model extends MultiGraph implements ViewerListener {
 
 	private int worldCount;
 
-	private ArrayList<String> clickedWorlds = new ArrayList<String>();
+	//private ArrayList<String> clickedWorlds = new ArrayList<String>();
 	private ArrayList<String> agents;
 	private ArrayList<Node> selectedNodes = new ArrayList<Node>();
 	private TreeSet<String> atoms = new TreeSet<String>();//set of all unique atoms in the model. For each atom each node must have a truth assignment
@@ -377,26 +375,8 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 		return accessCount;
 	}
-
-	private void canAccessWorlds(String agent)
-	{	
-		Iterator<Node> nodes = getNodeIterator();
-		while (nodes.hasNext())
-		{
-			Node n = nodes.next();
-			ArrayList<String> atoms = n.getAttribute("atoms");
-			StringBuilder sb = new StringBuilder();
-			for (String s : atoms)
-			{
-				Formula f = new Knows(new Atom(s), agent);
-				f.evaluate(n);
-				sb.append(s);
-			}
-			System.out.println("Agent: " + agent + " can access " + n.getId() + " with " + sb.toString());
-		}
-	}
 	
-	private void printCommonKnowledge()
+	public void printCommonKnowledge()
 	{
 		for(CommonKnowledge f : this.CK)
 			System.out.println(f.pprint());
@@ -503,8 +483,8 @@ public class Model extends MultiGraph implements ViewerListener {
 	}
 	
 	public class CommonKnowledgeFrame extends JFrame {
-
-		  JScrollPane scrollpane;
+		private static final long serialVersionUID = -7027156754827566538L;
+		JScrollPane scrollpane;
 
 		  public CommonKnowledgeFrame() {
 		    super("Common Knowledge");

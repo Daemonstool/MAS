@@ -4,8 +4,6 @@ import java.util.Iterator;
 
 import org.graphstream.graph.Node;
 
-import model.Model;
-
 public class CommonKnowledge implements Formula {
 	
 	private Formula f;
