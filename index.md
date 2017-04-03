@@ -25,6 +25,8 @@ The Java application needs to be downloaded separately [here](https://daemonstoo
 
 When running the Java application there are two options. You can either connect to the already running server hosted at [https://mas-ek.herokuapp.com/](https://mas-ek.herokuapp.com/) or you can download the repository and host the server yourself after which you can connect to the local server. When choosing the latter option, note that you are connecting to localhost on port 3000. Either way, once you are connected to a server a "connected" message will appear in the terminal to confirm the connection and messages from the Exploding Ketchup game will stream to the Java application which represent the actions of players while they are playing the game.
 
+Due a large number of labels in the graph UI, we added some controls to it. To show the agents that have a certain relation, you need to select both worlds it is between. A selected node is red, and a node can be selected simply by clicking it. Note that you can also drag the nodes around, this is useful if the graph becomes "tangled", or you feel the order is counterintuitive.
+
 # [](#header-3)Restrictions
 We very quickly realised this project was much larger than the time for this project allowed. We decided to restrict ourselves to considering only the knowledge of where the exploding kittens cards are. We also possibly look at diffuse cards (which are in the player's hands instead of the stack), but it was quickly apparent that that was also not going to happen.
 
