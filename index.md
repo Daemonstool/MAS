@@ -46,7 +46,19 @@ When a model is created, a world is created for all possible combinations of ato
 
 When the game is started, the game sends the names of the players to the model and the model will add appropriate relations between worlds for all agents. The model applies CommonKnowledge rules, rules that all agents know, to determine whether some worlds are already not possible, and not make relations to those worlds as no agents will consider them possible. For example, in our implementation there are the common knowledge rules that if one card is the exploding kitten card, the others are not (because there is only one exploding kitten in a game with two players). Worlds with multiple exploding kitten cards are ignored by agents as a consequence.
 
-As the game is played, the game will send messages to the Game class informing it of actions in the game, and it will appropriately update the model. There are too many updates possible too discuss now, even with our simplified game. The logic is used periodically during updates to derivate knowledge and exclude possible worlds.
+# [](#header-5)Some examples
+
+As the game is played, the game will send messages to the Game class informing it of actions in the game, and it will appropriately update the model. 
+
+For example, when a see the future card is played, it will update all relations concerning the player that played that card. If no exploding kitten is seen, only the world {¬ek1, ¬ek2, ¬ek3} will hold. In the model this world will have a reflexive relation only for this agent. Drawing a card, causes a relations to be added to any possible world that has `ek1`, e.g. {¬ek1, ¬ek2, ek3}. Drawing more cards will extend relations even more.
+
+Another case for the see the future cards is when an exploding kitten card is seen. Assume a player has seen it on the third card, so `ek3` is true. A world {¬ek1, ¬ek2, ek3} then only holds, so the player has a relation to this world only. Then drawing a card will shift the knowledge to {¬ek1, ek2, ¬ek3}.
+
+Another example is when the shuffle card is played: this ``throws'' away all knowledge of any `ek` card. Each possible world has a relation again for each agent. The same effect is obtained by defusing an exploding kitten, since the exploding kitten card is randomly put back in the stack. Hence, also after defusing an exploding kitten, all knowledge about the exploding kitten card is thrown away and all possible relations are returned appropriately.
+
+An interesting feature is the case when the stack size becomes small (e.g. 2 cards left), this means that the exploding kitten card has to be at `ek1` or `ek2`, thus, by means of common knowledge derivation, there are only two worlds possible and there are no relations with any other world. For example worlds with {¬ek1, ¬ek2, ¬ek3}, {¬ek1, ¬ek2, ek3} are no longer possible. The first one because there has to be an exploding kitting card at a position, the second one because it cannot be on the third position since there are only 2 cards left.
+
+There are too many other updates possible too discuss now, even with our simplified game. The logic is used periodically during updates to derivate knowledge and exclude possible worlds.
 
 # [](#header-6)Discussion
 As discussed extensively already, we had to severly cut down in the size of this project and still it turned out smaller than we had hoped. The logic interface is not used as much as we'd wanted, only common knowledge is really used to show the power of derivation. Thus, we concluded that our project serves quite well as a proof of concept and a baseline for further systems, but it does not reach its goal of modelling the knowledge in a game of exploding kittens.
