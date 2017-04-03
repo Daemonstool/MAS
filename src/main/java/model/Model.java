@@ -16,6 +16,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
+import javax.swing.event.ListDataListener;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
