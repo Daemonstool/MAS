@@ -5,6 +5,7 @@ import java.awt.GridLayout;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -151,18 +152,31 @@ class Game {
 			switch (model.getCardsleft())
 			{
 			case 1: 
-				model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c1")));
+				CommonKnowledge c1 = new CommonKnowledge(new Atom("c1"));
+				model.getCommonKnowledge().add(c1);
+				model.addToAllNodes("c1");
+				model.getDLM().addElement(c1.pprint());
+				
 				model.setWorldCount(1);
 				removeInconsistentWorlds();
 				this.interConnectAll();
 				break;
 			case 2:
-				model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c2")));
+				CommonKnowledge c2 = new CommonKnowledge(new Atom("c2"));
+				model.getCommonKnowledge().add(c2);
+				model.addToAllNodes("c2");
+				model.getDLM().addElement(c2.pprint());
+				
+				
 				model.setWorldCount(2);
 				removeInconsistentWorlds();
 				break;
 			case 3: 
-				//model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c3")));
+				CommonKnowledge c3 = new CommonKnowledge(new Atom("c3"));
+				model.getCommonKnowledge().add(c3);
+				model.addToAllNodes("c3");
+				model.getDLM().addElement(c3.pprint());
+				
 				model.setWorldCount(3);
 				removeInconsistentWorlds();
 				break;
@@ -181,11 +195,10 @@ class Game {
 		{
 			if (model.getAgents().size() == 2)
 			{
-				interConnectAll();
+				System.out.println("IC_ALL");
+				this.interConnectAll();
 			}
 		}
-				
-		
 		updateLabels();
 	}
 
@@ -248,6 +261,40 @@ class Game {
 			if (atomArray.isEmpty())
 				emptyNode = n1;
 		}
+		
+		if(!model.isConsistent(emptyNode))
+		{
+			nodes = model.getNodeIterator();
+			// use this instead of hard coding for w8.
+			ArrayList<Node> compareNodes = new ArrayList<Node>();
+			ArrayList<Integer> compareInts = new ArrayList<Integer>();
+			int tmp = 0;
+			while (nodes.hasNext()){
+				Node n1 = nodes.next();
+				if(model.isConsistent(n1))
+				{
+					ArrayList<String> atomArray = n1.getAttribute("atoms");
+					for(String atom : atomArray)
+					{
+						try
+						{
+							compareInts.add(Character.getNumericValue(atom.charAt(2)));
+							compareNodes.add(n1);
+						}
+						catch (Exception e) //c1 c2 c3
+						{
+							continue;
+						}
+					}
+				}
+			}
+			tmp = Collections.max(compareInts);
+			for(int i = 0; i < compareInts.size(); ++i){
+				if (compareInts.get(i) == tmp)
+					emptyNode = compareNodes.get(i);
+			}
+			
+		}
 		return emptyNode;
 	}
 	
@@ -305,46 +352,60 @@ class Game {
 	//also check inconsistency.
 	// connects all consistent worlds.
 	private void interConnectAll() {
-		
-		for (String a : model.getAgents())
-		{
-			for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
-			{
-				if (model.isConsistent(model.getNode("w" + w1)))
-				{
-					for (int w2 = 1; w2 <= model.getWorldCount(); ++w2)
-					{
-						if (model.isConsistent(model.getNode("w" + w2)))
-						{
-							if (!model.hasRelation("w" + w1, "w" + w2, a))
-							{
-								model.addRelation("w" + w1, "w" + w2, a);
-							}
-						}
-					}
-				}
+		Iterator<Node> nodes = model.iterator();
+		HashSet<Node> toAddNodes = new HashSet<Node>();
+		while(nodes.hasNext()){
+			Node n = nodes.next();
+			if(model.isConsistent(n)){
+				toAddNodes.add(n);
 			}
+		}
+		
+		for(Node n : toAddNodes){
+			HashSet<String> toRemoveEdges = new HashSet<String>();
+			Iterator<Edge> edges = n.getEdgeIterator();
+			while (edges.hasNext())
+			{
+				//search for edges that need to be removed
+				Edge e = edges.next();
+				toRemoveEdges.add(e.getId());
+			}
+			//actually remove the edges
+			for (String e : toRemoveEdges)
+				for (String player : model.getAgents())
+					if (!model.hasRelation(e,player))
+						model.addRelation(e, player);
 		}
 	}
 	
 	// also check inconsistency.
 	// connects all consistent worlds.
 	private void removeInconsistentWorlds() {
-		System.out.println("TESTTEST");
-		System.out.println("consiswc: " + model.getMaxConsistentWorlds());
-		for (String a : model.getAgents())
-		{
-			for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
-			{
-				for (int w2 = 1; w2 <= model.getWorldCount(); ++w2)
-				{
-					if (model.hasRelation("w" + w1, "w" + w2, a) && (!model.isConsistent(model.getNode("w" + w2)) || !model.isConsistent(model.getNode("w" + w1))))
-					{
-						model.removeRelation("w" + w1, "w" + w2, a);
-					}
-				}
+		Iterator<Node> nodes = model.iterator();
+		HashSet<Node> toRemoveNodes = new HashSet<Node>();
+		while(nodes.hasNext()){
+			Node n = nodes.next();
+			if(!model.isConsistent(n)){
+				toRemoveNodes.add(n);
 			}
 		}
+		
+		for(Node n : toRemoveNodes){
+			HashSet<String> toRemoveEdges = new HashSet<String>();
+			Iterator<Edge> edges = n.getEdgeIterator();
+			while (edges.hasNext())
+			{
+				//search for edges that need to be removed
+				Edge e = edges.next();
+				toRemoveEdges.add(e.getId());
+			}
+			//actually remove the edges
+			for (String e : toRemoveEdges)
+				for (String player : model.getAgents())
+					if (model.hasRelation(e,player))
+						model.removeRelation(e, player);
+		}
+			
 	}
 
 	// after a drawcard a world that only has a relation to it self
@@ -357,18 +418,33 @@ class Game {
 		//determine next true world(s)
 		Iterator<Node> nodes = model.getNodeIterator();
 		ArrayList<Node> shiftToNodes = new ArrayList<Node>();
+		int atomInt = 0;
 		while (nodes.hasNext()){
 			Node next = nodes.next();
 			if (!n.equals(next) && model.isConsistent(next)){
 				ArrayList<String> atoms = n.getAttribute("atoms");
 				ArrayList<String> nextAtoms = next.getAttribute("atoms");
 				for (int i = 0; i < atoms.size(); ++i){
-					int atomInt = Character.getNumericValue(atoms.get(i).charAt(2));
+					try
+					{
+						atomInt = Character.getNumericValue(atoms.get(i).charAt(2));
+					}
+					catch (Exception e) //if c1 ... c3 is set.
+					{
+						continue;
+					}
 					for (int j = 0; j < nextAtoms.size(); ++j)
 					{
 						// if a world contains ek such that it is one lower than the current.
-						if (atomInt - 1 == Character.getNumericValue(nextAtoms.get(j).charAt(2)))
+						try{
+							if (atomInt - 1 == Character.getNumericValue(nextAtoms.get(j).charAt(2)))
 							shiftToNodes.add(next);
+						}
+						catch (Exception e) // c1 ... c3.
+						{
+							continue;
+						}
+							
 					}
 				}
 				
@@ -408,6 +484,7 @@ class Game {
 		// 2. determine the world with one EK higher.
 		Node addNode = getEmptyWorld();
 		it = model.getNodeIterator();
+		int tmp = 0;
 		while (it.hasNext())
 		{
 			Node n = it.next();
@@ -416,7 +493,14 @@ class Game {
 				atomArray = n.getAttribute("atoms");
 				for (int i = 0; i < atomArray.size(); ++i)
 				{
-					int tmp = Character.getNumericValue(atomArray.get(i).charAt(2));
+					try
+					{
+						tmp = Character.getNumericValue(atomArray.get(i).charAt(2));
+					}
+					catch (Exception e) //c1 or c2 or c3
+					{
+						continue;
+					}
 					// found the world!
 					if (lowestEK == 0 && tmp == 3)
 						addNode = n;

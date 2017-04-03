@@ -16,7 +16,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
-import javax.swing.event.ListDataListener;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -32,6 +31,7 @@ import logic.Formula;
 import logic.If;
 import logic.Knows;
 import logic.Not;
+import logic.Or;
 
 public class Model extends MultiGraph implements ViewerListener {
 
@@ -58,12 +58,15 @@ public class Model extends MultiGraph implements ViewerListener {
 		this.atoms.add("ek3");
 
 
-		CommonKnowledge c1 = new CommonKnowledge(new If(new Atom("ek1"),new And(new Not(new Atom("ek2")),new Not(new Atom("ek3")))));
+		CommonKnowledge c1 = new CommonKnowledge(new If(new Atom("ek1"), new And(new Not(new Atom("ek2")),new Not(new Atom("ek3")))));
 		CommonKnowledge c2 = new CommonKnowledge(new If(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3")))));
 		CommonKnowledge c3 = new CommonKnowledge(new If(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2")))));
-		CommonKnowledge card1 = new CommonKnowledge(new If(new CommonKnowledge(new Atom("c1")), new Not(new Atom("ek1"))));
-		CommonKnowledge card2 = new CommonKnowledge(new If(new CommonKnowledge(new Atom("c2")), new Not(new Atom("ek2"))));
-		CommonKnowledge card3 = new CommonKnowledge(new If(new CommonKnowledge(new Atom("c3")), new Not(new Atom("ek3"))));
+		
+		
+		
+		CommonKnowledge card1 = new CommonKnowledge(new If(new Atom("c3"), new Or(new Atom("ek1"), new Or(new Atom("ek2"), new Atom("ek3")))));
+		CommonKnowledge card2 = new CommonKnowledge(new If(new Atom("c2"), new Not(new Atom("ek3"))));
+		CommonKnowledge card3 = new CommonKnowledge(new If(new Atom("c1"), new Not(new Atom("ek2"))));
 		
 		this.CK.add(c1);
 		this.CK.add(c2);
@@ -78,6 +81,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		dlm.addElement(card1.pprint());
 		dlm.addElement(card2.pprint());
 		dlm.addElement(card3.pprint());
+
 		
 		CommonKnowledgeFrame sl = new CommonKnowledgeFrame();
 	    sl.setVisible(true);
@@ -131,6 +135,17 @@ public class Model extends MultiGraph implements ViewerListener {
 			this.atoms.add(atom);
 		}
 	}
+	
+	public void addToAllNodes(String atom){
+		Iterator<Node> nodes = iterator();
+		while(nodes.hasNext()){
+			Node n = nodes.next();
+			addAtom(n.getId(),atom);
+		}
+		
+		
+		
+	}
 
 	public void constructFromFile(String s)
 	{
@@ -160,6 +175,11 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 	}
 	
+	
+	public DefaultListModel<String> getDLM()
+	{
+		return this.dlm;
+	}
 	
 	public ArrayList<CommonKnowledge> getCommonKnowledge()
 	{
@@ -207,7 +227,12 @@ public class Model extends MultiGraph implements ViewerListener {
 		//System.out.println("Add relation: " + idFrom + idTo + " for " + agent);
 		e.addAttribute("layout.weight", 8);
 	}
-
+	
+	public void addRelation(String edge, String agent)
+	{
+		addRelation("w" + edge.split("w")[1], "w" + edge.split("w")[2], agent );
+	}
+	
 	public ArrayList<String> getAtoms(String node) 
 	{
 		return getNode(node).getAttribute("atoms");
@@ -281,7 +306,7 @@ public class Model extends MultiGraph implements ViewerListener {
 		if(e != null){
 			ArrayList<String> agents = e.getAttribute("agents");
 			if(agents.contains(agent)){
-				System.out.println("Removing relation " + edgeId + " for agent " + agent);
+				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
 				agents.remove(agent);
 				if(agents.isEmpty()){
 					removeEdge(edgeId);
@@ -318,7 +343,8 @@ public class Model extends MultiGraph implements ViewerListener {
 	{
 		//returns whether a node is possible given the common knowledge rules
 		for (CommonKnowledge c : CK){
-			if (!c.evaluate(n)){
+			if (!c.getFormula().evaluate(n)){
+				//System.out.println("Node " + n.getId() + " is inconsistent with rule " + c.pprint() + ": " + n.getAttribute("atoms").toString());
 				return false;
 			}
 		}

@@ -4,6 +4,8 @@ import java.util.Iterator;
 
 import org.graphstream.graph.Node;
 
+import model.Model;
+
 public class CommonKnowledge implements Formula {
 	
 	private Formula f;
@@ -13,10 +15,11 @@ public class CommonKnowledge implements Formula {
 	}
 
 	public boolean evaluate(Node n) {
-		Iterator<Node> nodes = n.getBreadthFirstIterator();
+		Iterator<Node> nodes = n.getDepthFirstIterator();
 		while(nodes.hasNext()){
 			Node node = nodes.next();
 			if(!f.evaluate(node)){
+				System.out.println(node);
 				return false;
 			}
 		}
@@ -25,6 +28,10 @@ public class CommonKnowledge implements Formula {
 
 	public String pprint() {
 		return "C(" + f.pprint() + ")";
+	}
+	
+	public Formula getFormula(){
+		return f;
 	}
 
 }
