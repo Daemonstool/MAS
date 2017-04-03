@@ -467,6 +467,7 @@ class Game {
 		// find next world and add relations to it, this is done in 3 steps
 		
 		// 1. Do this by determining the highest connected ekX value 
+		int tmp = 0;
 		while (it.hasNext())
 		{
 			Node n = it.next();
@@ -475,8 +476,15 @@ class Game {
 				atomArray = n.getAttribute("atoms");
 				for (int i = 0; i < atomArray.size(); ++i)
 				{
-					int tmp = Character.getNumericValue(atomArray.get(i).charAt(2));
-					if(tmp < lowestEK || lowestEK == 0)
+					try
+					{
+						tmp = Character.getNumericValue(atomArray.get(i).charAt(2));
+					}
+					catch (Exception e) //c1 c2 c3 ...
+					{
+						continue;
+					}
+					if(tmp < lowestEK  || lowestEK == 0)
 						lowestEK = tmp;
 				}
 			}
@@ -484,7 +492,7 @@ class Game {
 		// 2. determine the world with one EK higher.
 		Node addNode = getEmptyWorld();
 		it = model.getNodeIterator();
-		int tmp = 0;
+
 		while (it.hasNext())
 		{
 			Node n = it.next();
