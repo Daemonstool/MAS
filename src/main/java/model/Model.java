@@ -1,5 +1,6 @@
 package model;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,6 +11,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TreeSet;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JScrollPane;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -36,6 +42,8 @@ public class Model extends MultiGraph implements ViewerListener {
 	private TreeSet<String> atoms = new TreeSet<String>();//set of all unique atoms in the model. For each atom each node must have a truth assignment
 	private ArrayList<CommonKnowledge> CK = new ArrayList<CommonKnowledge>();
 
+	private DefaultListModel<String> dlm = new DefaultListModel<>();
+
 	private int cardsleft = Integer.MAX_VALUE;
 
 	public Model() {
@@ -48,9 +56,19 @@ public class Model extends MultiGraph implements ViewerListener {
 		this.atoms.add("ek2");
 		this.atoms.add("ek3");
 
-		this.CK.add(new CommonKnowledge(new If(new Atom("ek1"),new And(new Not(new Atom("ek2")),new Not(new Atom("ek3"))))));
-		this.CK.add(new CommonKnowledge(new If(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3"))))));
-		this.CK.add(new CommonKnowledge(new If(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2"))))));
+		CommonKnowledge c1 = new CommonKnowledge(new If(new Atom("ek1"),new And(new Not(new Atom("ek2")),new Not(new Atom("ek3")))));
+		CommonKnowledge c2 = new CommonKnowledge(new If(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3")))));
+		CommonKnowledge c3 = new CommonKnowledge(new If(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2")))));
+		this.CK.add(c1);
+		this.CK.add(c2);
+		this.CK.add(c3);
+		
+		dlm.addElement(c1.pprint());
+		dlm.addElement(c2.pprint());
+		dlm.addElement(c3.pprint());
+		
+		CommonKnowledgeFrame sl = new CommonKnowledgeFrame();
+	    sl.setVisible(true);
 
 		//printCommonKnowledge();
 		
@@ -439,5 +457,21 @@ public class Model extends MultiGraph implements ViewerListener {
 	public void setWorldCount(int worldCount)
 	{
 		this.worldCount = worldCount;
+	}
+	
+	public class CommonKnowledgeFrame extends JFrame {
+
+		  JScrollPane scrollpane;
+
+		  public CommonKnowledgeFrame() {
+		    super("Common Knowledge");
+		    setSize(300, 200);
+		    setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+		    JList<String> list = new JList<>(dlm);
+		    scrollpane = new JScrollPane(list);
+		    
+		    getContentPane().add(scrollpane, BorderLayout.CENTER);
+		  }
 	}
 }
