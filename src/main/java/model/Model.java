@@ -129,7 +129,12 @@ public class Model extends MultiGraph implements ViewerListener {
 			e.printStackTrace();
 		}
 	}
-
+	
+	
+	public ArrayList<CommonKnowledge> getCommonKnowledge()
+	{
+		return this.CK;
+	}
 	@Override
 	@SuppressWarnings("unchecked")
 	public Edge addEdge(String agent, String idFrom, String idTo) 
