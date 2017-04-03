@@ -17,7 +17,7 @@ public class Not implements Formula{
 
 	@Override
 	public String pprint() {
-		return "~" + f.pprint();
+		return Character.toString((char) 172) + f.pprint();
 	}
 
 }
