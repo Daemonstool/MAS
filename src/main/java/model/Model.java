@@ -55,23 +55,24 @@ public class Model extends MultiGraph implements ViewerListener {
 		//creates all worlds to have all combinations of atoms present
 		ArrayList<String> negation = new ArrayList<String>(atoms);
 		negation.remove(idx);
-		if(idx == atoms.size()-1){
+		if (idx == atoms.size()-1){
 			//base case, add worlds
 			String id = addNode("").getId();
-			for(String a : atoms){
+			for (String a : atoms){
 				addAtom(id,a);
 			}
 			id = addNode("").getId();
-			for(String a : negation){
+			for (String a : negation){
 				addAtom(id,a);
 			}
-		}else{
+		} else {
 			initWorlds(idx+1,atoms);
 			initWorlds(idx,negation);
 		}
 	}
 
-	private String getNextWorldName(){
+	private String getNextWorldName()
+	{
 		//generate the next world id
 		return "w" + ++worldCount;
 	}
@@ -84,11 +85,12 @@ public class Model extends MultiGraph implements ViewerListener {
 		return n;
 	}
 
-	public void addAtom(String node, String atom) {
+	public void addAtom(String node, String atom) 
+	{
 		Node n = getNode(node);
 		ArrayList<String> nodeAtoms = n.getAttribute("atoms");
 		nodeAtoms.add(atom);
-		if(!this.atoms.contains(atom)){
+		if (!this.atoms.contains(atom)){
 			//update the set of all atoms in the model
 			this.atoms.add(atom);
 		}
@@ -100,7 +102,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			BufferedReader in = new BufferedReader(new FileReader(s));
 
 			String line;
-			while((line = in.readLine()) != null)
+			while ((line = in.readLine()) != null)
 			{
 				String[] args = line.split(" ");
 				if (args.length == 2)
@@ -124,7 +126,8 @@ public class Model extends MultiGraph implements ViewerListener {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Edge addEdge(String agent, String idFrom, String idTo) {
+	public Edge addEdge(String agent, String idFrom, String idTo) 
+	{
 		//Adds an edge between two world, with at least one agent
 		//DIRECT USE NOT RECOMMENDED
 		//This method assumes the edge doesn't already exist, you'll have to check this before
@@ -136,7 +139,8 @@ public class Model extends MultiGraph implements ViewerListener {
 			e.setAttribute("ui.class", "symmetric");// tag only applies to one
 			// side to separate the labels
 		}
-		if (idFrom.equals(idTo)) {
+		if (idFrom.equals(idTo)) 
+		{
 			// reflexive relation, tag it
 			e.setAttribute("ui.class", "reflexive");
 		}
@@ -146,31 +150,39 @@ public class Model extends MultiGraph implements ViewerListener {
 		return e;
 	}
 
-	public void addRelation(String idFrom, String idTo, String agent) {
+	public void addRelation(String idFrom, String idTo, String agent) 
+	{
 		//adds a relation for an agent between two worlds
 		Edge e = getEdge(idFrom+idTo);
-		if(e == null){
+		if (e == null)
+		{
 			//need to add the edge
 			e = addEdge(agent,idFrom,idTo);
-		}else{
+		} else 
+		{
 			ArrayList<String> agents = e.getAttribute("agents");
 			agents.add(agent);
 		}
+		//System.out.println("Add relation: " + idFrom + idTo + " for " + agent);
+		e.addAttribute("layout.weight", 8);
 	}
 
-	public ArrayList<String> getAtoms(String node) {
+	public ArrayList<String> getAtoms(String node) 
+	{
 		return getNode(node).getAttribute("atoms");
 	}
 
-	private String constructNodeLabel(Node n){
+	private String constructNodeLabel(Node n)
+	{
 		ArrayList<String> nodeAtoms = n.getAttribute("atoms");
 		StringBuilder ss = new StringBuilder(n.getId() + ": ");
-		for(String a : atoms){
-			if(nodeAtoms.contains(a)){
+		for (String a : atoms)
+		{
+			if (nodeAtoms.contains(a))
 				ss.append(a);
-			}else{
-				ss.append("¬" + a);
-			}
+			else 
+				ss.append(Character.toString((char) 172) + a);
+			
 			ss.append(", ");
 		}
 		ss.delete(ss.length()-2,ss.length());
@@ -178,7 +190,8 @@ public class Model extends MultiGraph implements ViewerListener {
 	}
 
 	@Override
-	public Viewer display() {
+	public Viewer display() 
+	{
 		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 		addAttribute("ui.antialias");
 		addAttribute("ui.quality");// remove if real-time rendering becomes laggy
@@ -220,13 +233,14 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 	}
 
-	public void removeRelation(String edgeId, String agent){
+	public void removeRelation(String edgeId, String agent)
+	{
 		//remove a relation for an agent between two worlds
 		Edge e = getEdge(edgeId);
 		if(e != null){
 			ArrayList<String> agents = e.getAttribute("agents");
 			if(agents.contains(agent)){
-				//System.out.println("Removing relation " + edgeId + " for agent " + agent);
+				System.out.println("Removing relation " + edgeId + " for agent " + agent);
 				agents.remove(agent);
 				if(agents.isEmpty()){
 					removeEdge(edgeId);
@@ -237,55 +251,64 @@ public class Model extends MultiGraph implements ViewerListener {
 		System.err.println("Tried to remove agent " + agent + "on relation " + edgeId + "while that relation wasn't there!");
 	}
 
-	public void removeRelation(String idFrom, String idTo, String agent){
+	public void removeRelation(String idFrom, String idTo, String agent)
+	{
 		//remove a relation for an agent between two worlds
 		removeRelation(idFrom+idTo,agent);
 	}
 
-	public boolean hasRelation(String edgeId, String agent){
+	public boolean hasRelation(String edgeId, String agent)
+	{
 		Edge e = getEdge(edgeId);
-		if(e != null){
+		if(e != null)
+		{
 			ArrayList<String> agents = e.getAttribute("agents");
 			return agents.contains(agent);
-		}else{
+		} else
 			return false;
-		}
-
 	}
 
-	public boolean hasRelation(String idFrom, String idTo, String agent){
+	public boolean hasRelation(String idFrom, String idTo, String agent)
+	{
 		return hasRelation(idFrom+idTo,agent);
 	}
 
-	public boolean isConsistent(Node n){
+	public boolean isConsistent(Node n)
+	{
 		//returns whether a node is possible given the common knowledge rules
-		for(CommonKnowledge c : CK){
-			if(!c.evaluate(n)){
+		for (CommonKnowledge c : CK){
+			if (!c.evaluate(n)){
 				return false;
 			}
 		}
 		return true;
+	}
+	
+	public int getMaxConsistentWorlds(){
+		int n = 0;
+		Iterator<Node> nodes = getNodeIterator();
+		while (nodes.hasNext()){
+			// get each node
+			Node n1 = nodes.next();
+			if (isConsistent(n1))
+				++n;
+		}
+		return n;
 	}
 
 	/* Checks whether how much worlds an agent can reach given a world */
 	public int canAccessWorlds(String agent, Node n)
 	{
 		Iterator<Edge> it =  n.getEachLeavingEdge().iterator();
-
 		int accessCount = 0;
 		while (it.hasNext())
 		{
 			Edge e = it.next();
 			ArrayList<String> agents = e.getAttribute("agents");
-
 			if (agents.contains(agent))
-			{
 				++accessCount;
-			}
 		}
-
 		return accessCount;
-
 	}
 
 	private void canAccessWorlds(String agent)
@@ -298,7 +321,7 @@ public class Model extends MultiGraph implements ViewerListener {
 			StringBuilder sb = new StringBuilder();
 			for (String s : atoms)
 			{
-				Formula f = new Knows(new Atom(s),agent);
+				Formula f = new Knows(new Atom(s), agent);
 				f.evaluate(n);
 				sb.append(s);
 			}
@@ -306,17 +329,19 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 	}
 	
-	private void printCommonKnowledge(){
-		for(CommonKnowledge f : this.CK){
+	private void printCommonKnowledge()
+	{
+		for(CommonKnowledge f : this.CK)
 			System.out.println(f.pprint());
-		}
 	}
 
-	public int getWorldCount() {
+	public int getWorldCount() 
+	{
 		return worldCount;
 	}
 
-	public ArrayList<String> getAgents() {
+	public ArrayList<String> getAgents() 
+	{
 		return agents;
 	}
 
@@ -330,14 +355,13 @@ public class Model extends MultiGraph implements ViewerListener {
 	public void buttonPushed(String id) {
 		// TODO Auto-generated method stub
 
-		Iterator<Edge> it = getNode(id).getEachEdge().iterator();
-
+		//Iterator<Edge> it = getNode(id).getEachEdge().iterator();
 		if (selectedNodes.contains(getNode(id)))
 		{
 			selectedNodes.remove(getNode(id));
 			getNode(id).removeAttribute("ui.color");
 			getNode(id).addAttribute("ui.color", new Color(0, 0, 0));
-		}
+		} 
 		else
 		{
 			selectedNodes.add(getNode(id));
@@ -358,13 +382,10 @@ public class Model extends MultiGraph implements ViewerListener {
 				{
 					Edge e2 = getEdge(n3.getId() + n4.getId());
 					if (e2 != null && selectedNodes.contains(n3) && selectedNodes.contains(n4))
-					{
+
 						e2.setAttribute("ui.label", e2.getAttribute("agents").toString());
-					}
 					else if (e2 != null)
-					{
 						e2.setAttribute("ui.label", "");
-					}
 				}
 			}
 		}
@@ -373,8 +394,8 @@ public class Model extends MultiGraph implements ViewerListener {
 	// e.g.: removes all but w4w4
 	public void removeRelationsForAgentsExcept(String agent, Node n)
 	{
-		for(int w1 = 1; w1 <= worldCount; ++w1){
-			for(int w2 = 1; w2 <= worldCount; ++w2){
+		for (int w1 = 1; w1 <= worldCount; ++w1){
+			for (int w2 = 1; w2 <= worldCount; ++w2){
 				if (hasRelation("w" + w1, "w"+ w2, agent) && !(n.equals(getNode("w" + w1)) && n.equals(getNode("w" + w2)))) {
 					removeRelation("w" + w1, "w" + w2, agent);
 				}
@@ -382,15 +403,17 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 	}	
 
-	public void setCardsleft(int cardsleft) {
+	public void setCardsleft(int cardsleft)
+	{
 		this.cardsleft = cardsleft;
 	}
 
-	public int getCardsleft() {
+	public int getCardsleft()
+	{
 		return cardsleft;
 	}
 
-	private void assignLabels()
+	public void assignLabels()
 	{
 
 		Iterator<Node> nodes = getNodeIterator();
@@ -407,7 +430,8 @@ public class Model extends MultiGraph implements ViewerListener {
 		}
 	}
 	
-	public void setWorldCount(int worldCount) {
+	public void setWorldCount(int worldCount)
+	{
 		this.worldCount = worldCount;
 	}
 }

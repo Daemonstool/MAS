@@ -566,11 +566,31 @@ module.exports = function(io, EK) {
                             var index = Math.floor(Math.random() * (game.drawPile.length));
                             game.drawPile.splice(index, 0, explode);
                             
-                            
+                            var arrayLength = EK.connectedUsers.length;
+                            for (var k in EK.connectedUsers) {
+                                
+                                if (EK.connectedUsers[k].name == "Admin")
+                                {
+                                    io.to(EK.connectedUsers[k].id).emit('message', "DF" + " " + player.user.name);                                
+                                }
+                                //Do something
+                            }
+
                             state = $.GAME.PLAYER.TURN.DEFUSED;
                         } else {
                             //Player exploded
                             state = $.GAME.PLAYER.TURN.EXPLODED;
+
+                            var arrayLength = EK.connectedUsers.length;
+                            for (var k in EK.connectedUsers) {
+                                
+                                if (EK.connectedUsers[k].name == "Admin")
+                                {
+                                    io.to(EK.connectedUsers[k].id).emit('message', "EK" + " " + player.user.name);                                
+                                }
+                                //Do something
+                            }
+
                             game.explodePlayer(player);
                         }
                     }
