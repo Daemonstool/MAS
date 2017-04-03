@@ -48,10 +48,13 @@ public class Model extends MultiGraph implements ViewerListener {
 		this.atoms.add("ek2");
 		this.atoms.add("ek3");
 
-		this.CK.add(new CommonKnowledge(new If(new Atom("ek1"),new And(new Not(new Atom("ek2")),new Not(new Atom("ek3"))))));
-		this.CK.add(new CommonKnowledge(new If(new Atom("ek2"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek3"))))));
-		this.CK.add(new CommonKnowledge(new If(new Atom("ek3"),new And(new Not(new Atom("ek1")),new Not(new Atom("ek2"))))));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek1"), new And(new Not(new Atom("ek2")), new Not(new Atom("ek3"))))));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek2"), new And(new Not(new Atom("ek1")), new Not(new Atom("ek3"))))));
+		this.CK.add(new CommonKnowledge(new If(new Atom("ek3"), new And(new Not(new Atom("ek1")), new Not(new Atom("ek2"))))));
 
+		this.CK.add(new CommonKnowledge(new If(new CommonKnowledge(new Atom("c1")), new Not(new Atom("ek1")))));
+		this.CK.add(new CommonKnowledge(new If(new CommonKnowledge(new Atom("c2")), new Not(new Atom("ek2")))));
+		this.CK.add(new CommonKnowledge(new If(new CommonKnowledge(new Atom("c3")), new Not(new Atom("ek3")))));
 		//printCommonKnowledge();
 		
 		initWorlds(0,new ArrayList<String>(atoms));

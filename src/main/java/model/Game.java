@@ -140,48 +140,26 @@ class Game {
 		if (type.equals("SS"))
 		{
 			model.setCardsleft(Integer.valueOf(args.get(0)));
-			//System.out.println(cardsleft + " = cardsleft");
 			switch (model.getCardsleft())
 			{
 			case 1: 
 				model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c1")));
-				/*try 
-				{ 
-					model.removeNode("w2");
-				} 
-				catch (Exception e)
-				{
-					System.err.println("Already removed");
-				}*/
 				model.setWorldCount(1);
+				removeInconsistentWorlds();
 				this.interConnectAll();
 				break;
 			case 2:
 				model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c2")));
-				
-				/*try 
-				{ 
-					model.removeNode("w3");
-				} 
-				catch (Exception e)
-				{
-					System.err.println("Already removed");
-				}*/
 				model.setWorldCount(2);
+				removeInconsistentWorlds();
 				break;
 			case 3: 
-				model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c3")));
-				/*try 
-				{ 
-					model.removeNode("w4");
-				} 
-				catch (Exception e)
-				{
-					System.err.println("Already removed");
-				}*/
+				//model.getCommonKnowledge().add(new CommonKnowledge(new Atom("c3")));
 				model.setWorldCount(3);
+				removeInconsistentWorlds();
 				break;
 			}
+			
 		}
 
 		// We dont have to check for nopes since the message is not sent anyway when someone card(set) is noped.
@@ -193,16 +171,9 @@ class Game {
 
 		if (type.equals("EK") || type.equals("DF"))
 		{
-			System.out.println("agents: " + model.getAgents().size());
 			if (model.getAgents().size() == 2)
 			{
 				interConnectAll();
-				
-				if (type.equals("EK"))
-					System.out.println("Saw a EK");
-				
-				if (type.equals("DF"))
-					System.out.println("Saw a DF");
 			}
 		}
 				
@@ -340,9 +311,28 @@ class Game {
 							if (!model.hasRelation("w" + w1, "w" + w2, a))
 							{
 								model.addRelation("w" + w1, "w" + w2, a);
-								System.out.println("w" + w1 + " w" + w2 + " ," + a);
 							}
 						}
+					}
+				}
+			}
+		}
+	}
+	
+	// also check inconsistency.
+	// connects all consistent worlds.
+	private void removeInconsistentWorlds() {
+		System.out.println("TESTTEST");
+		System.out.println("consiswc: " + model.getMaxConsistentWorlds());
+		for (String a : model.getAgents())
+		{
+			for (int w1 = 1; w1 <= model.getWorldCount(); ++w1)
+			{
+				for (int w2 = 1; w2 <= model.getWorldCount(); ++w2)
+				{
+					if (model.hasRelation("w" + w1, "w" + w2, a) && (!model.isConsistent(model.getNode("w" + w2)) || !model.isConsistent(model.getNode("w" + w1))))
+					{
+						model.removeRelation("w" + w1, "w" + w2, a);
 					}
 				}
 			}
