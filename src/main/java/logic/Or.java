@@ -18,7 +18,7 @@ public class Or implements Formula {
 
 	@Override
 	public String pprint() {
-		return f1.pprint() + " v " + f2.pprint();
+		return f1.pprint() + " " + Character.toString((char) 8744) + " " + f2.pprint();
 	}
 
 }

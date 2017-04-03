@@ -18,7 +18,7 @@ public class Iff implements Formula {
 
 	@Override
 	public String pprint() {
-		return f1.pprint() + "<-->" + f2.pprint();
+		return f1.pprint() + " " + Character.toString((char) 8596) + " " + f2.pprint();
 	}
 
 }
